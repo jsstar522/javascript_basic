@@ -6,7 +6,7 @@
 
 프로그래밍 언어는 빠르게 발전하고 있습니다. 자바스크립트는 ES6라는 버전에서 많은 변화를 겪었습니다. 전 버전과는 꽤 많은 차이를 보이고 있습니다. 이 포스트는 ES6 업데이트를 고려해서 작성됐습니다.
 
-##변수, Variable
+## 변수, Variable
 
 변수는 변하는 수입니다. 숫자나 문자, 함수를 변하는 수에 대입시킬 수 있고 변하는 수는 우리가 원하는 곳에 사용할 수 있습니다. 변수는 다음과 같이 선언합니다.
 
@@ -60,9 +60,9 @@ const array1 = [1, 'One', [1,2], {One:1}];
 
 
 
-###배열의 Method 사용하기(reduce)
+### 배열의 Method 사용하기(reduce)
 
-###배열 Method 사용하기
+### 배열 Method 사용하기
 
 
 
@@ -197,7 +197,7 @@ console.log(team.teamSummary(1));	//Hulk is belong to Avengers
 
 이번에는 함수안에 함수를 넣어서 모두 arrow function으로 써보겠습니다. member에 담긴 모든 구성원들을 소속까지 밝힌 문장으로 모두 출력시키는 것입니다. 1대1 매핑으로 loop를 돌아가면서 모든 구성원들을 변수로 받아와서 출력시켜야 하므로 `map()`을 사용합니다.
 
-###Arrow Function과 기존의 Function의 다른점
+### Arrow Function과 기존의 Function의 다른점
 
 ```javascript
 const team = {
@@ -219,7 +219,7 @@ This에 관련된 설명은 따로 다루겠습니다.
 
 
 
-##연산자, Operator
+## 연산자, Operator
 
 연산자는 연산을 위한 기호들을 말합니다.
 
