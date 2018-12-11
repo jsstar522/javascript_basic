@@ -1,4 +1,4 @@
-# Javascript, 자바스크립트
+# 자바스크립트, Javascript
 
 ## 자바스크립트란
 
