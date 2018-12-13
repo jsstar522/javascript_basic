@@ -113,6 +113,12 @@ student_score.han = 'F';	//추가
 delete student_score.kim;	//삭제
 ```
 
+속성(key)는 무조건 string으로 받아들입니다. 그렇기 때문에 **연산된 key값을 그냥 추가하면 연산이 이루어지지 않고 전체를 string으로 인식합니다.** 다음과 같이 객체에 동적으로 속성을 추가할 수 있습니다.
+
+```javascript
+student_score['park'+2] = 'C';
+```
+
 
 
 ## 함수, Function
