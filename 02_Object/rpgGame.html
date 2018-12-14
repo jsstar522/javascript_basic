@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RPG GAME</title>
+</head>
+<body>
+<div id ="log"></div>
+<script>
+//RPG 게임만들기
+
+//<div id ="log">에 전투 로그 남기기(폰트색깔)
+function logMesaage(msg, color){
+  if(!color){color = 'black';}
+  var div = document.createElement('div');
+  div.innerHTML = msg;
+  div.style.color = color;
+  document.getElementById('log').appendChild(div);
+}
+var gameover = false; //게임상태
+var battle = false;   //전투상태
+//캐릭터 생성자 함수 이름, 체력, 공격력
+function Character(name, hp, att){
+  this.name = name;
+  this.hp = hp;
+  this.att = att;
+}
+//전투시 체력계산 메서드(방어)
+Character.prototype.attacked = function(damage){
+  this hp -= damage;
+  logMessage(this.name + '의 체력이' + this.hp + '가 되었습니다.');
+  if(this.hp <= 0){
+    battle = false;   //전투 중지
+  }
+}
+//전투시 체력계산 메서드(공격)
+Character.prototype.attack = function(target){
+  logMessage(this.name + '이' + target.name + '을 공격합니다');
+  if (this.hp<=0){
+    battle = false;   //전투 중지
+  }
+}
+//캐릭터 상속 객체 생성자 함수(유저)
+function Hero(name, hp, att, lev, xp){
+  Character.apply(this, arguments);
+  this lev = lev||1;
+  this xp = xp||0;
+}
+//캐릭터 상속 객체 생성자 함수(유저) 프로토타입 메서드
+Hero.prototype = Object.create(Character.prototype);
+Hero.prototype.constructor = Hero;
+
+//캐릭터 프로토타입 메서드 확장(죽었을 때 gameover = True)
+Hero.prototype.attacked = function(damage){
+  this hp -= damage;
+  logMesaage(this.name + '님의 체력이' + this.hp + '남았습니다.');
+  if (this.hp <= 0){
+    
+  }
+}
+
+//캐릭터 상속 객체 생성자 함수(몬스터)
+
+</script>
+</body>
+</html>

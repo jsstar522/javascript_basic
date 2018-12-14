@@ -1,4 +1,4 @@
-# Node.js에 앞서 ES6
+# 00Node.js에 앞서 ES6
 
 ## Const와 let
 
@@ -110,9 +110,167 @@ var { getCandy, status:{count} } = candyMachine;
 
 
 
-## 프로미스
+## 프로미스, Promise
+
+싱글스레드를 사용하는 node.js에서는 콜백함수를 통해서 장점을 취하며 단점을 보완했습니다. 하지만 콜백함수가 많아지면 많아질수록 내부적으로 해결하기 힘든 점이 생겼습니다.
+
+* 콜백함수에 에러가 생겼을 경우 예외처리가 힘들다.(비동기방식에서 콜백함수는 Background에 있기 때문)
+* 복잡해지는 현상 (Callback Hell)
+
+이 단점을 보완하기 위해 프로미스 라이브러리가 생겨났고 ES6에는 언어에서 지원하기 시작했습니다. 먼저 프로미스를 선언해보겠습니다. 프로미스는 객체이므로 생성자 함수를 통해서 선언합니다.
+
+```javascript
+//condition = 성공이면 True, 실패하면 False를 대입한다
+const promise = function(condition){
+    return new Promise((resolve, reject)=>{
+    if(condition){
+        //비동기방식 동작
+        resolve('성공!!');
+    }
+    else{
+        reject('에러!!');
+    }
+});
+}
+```
+
+```javascript
+//success : promise.then();
+promise(true).then((message) => {console.log(message);});	//"성공!!" 메세지
+//fail : promise.catch();
+promise(true).catch((err)=>{console.log(err);});	//불러오지 않음
+
+//true가 아닌 false를 입력하면 "에러!!"가 뜬다
+```
+
+condition에 `true`가 입력되면 `.then`에서 "성공"이라는 메세지를 출력하고, `false`가 입력되면 `.catch`에서 "에러"라는 메세지를 출력합니다. 프로미스는 콜백지옥에서 해방시켜줄 수 있는 해방구라고 했습니다. 일단 콜백지옥을 확인해보시죠. 
+
+```javascript
+function findAndSaveUser(Users){
+  Users.findOne({}, (err, user) => {	//첫번째 콜백
+      if(err){
+          return consol.error(err);
+      }
+      user.name = 'park';
+      user.save((err) => {	//두번째 콜백
+          if(err){
+              return console.error(err);
+          }
+          Users.findOne({gender: 'male'}, (err,user) => {	//세번째 콜백
+              if(err){
+                  return console.error(err);
+              }
+              user.job = 'student';
+          });
+      });
+  });
+}
+```
+
+콜백함수를 이용해서 코드를 짜다보면 이런경우가 다반사로 일어납니다. 이제 프로미스를 선언했다면 어떤방식으로 사용되는지 위의 코드를 다시 짜보겠습니다.
+
+```javascript
+function findAndSaveUser(Users){
+    Users.findOne({})
+        .then((user)=>{
+        user.name = 'park';
+        return user.save();	//리턴값을 다음으로 넘긴다
+    	})
+        .then((user)=>{
+        return User.findOne({gender:'male'});
+    	})
+        .then((user)=>{
+        return user.job = 'student';
+    	})
+        .catch(err=>{
+        console.error(err);
+    	});
+}
+```
+
+`.then` 메서드들은 순차적으로 실행됩니다. `.then().then().then()...` 형식을 보기 좋게 표현해놓은 것입니다. `.catch()`는 에러가 나면 캐치가 가능하게 해줍니다. 그리고 여러개의 프로미스가 완료되었을 때 `Promise.all()`로 한번에 실행할 수 있습니다.
+
+```javascript
+const promise1 = new Promise((resolve,reject)=>{
+    if(true){
+        resolve('성공');
+    }
+    else{
+        reject('실패');
+    }
+});
+const promise2 = new Promise((resolve,reject)=>{
+    if(true){
+        resolve('성공_2');
+    }
+    else{
+        reject('실패_2');
+    }
+});
+
+Promise.all([promise1, promise2])
+    .then((result)=>{
+    console.log(result);
+})	//['성공', '성공_2']
+```
+
+로직을 이해하기 위해서 다음 코드를 보겠습니다.
+
+```javascript
+asyncThing1()
+	.then(function() {return asyncThing2();})
+	.then(function() {return asyncThing3();})
+	.catch(function(err) {return asyncRecovery1();})
+	.then(function() {return asyncThing4();}, function(err){return asyncRecovery2();})
+	.catch(function(err){console.log("Don't worry about it");})
+	.then(function() {console.log("All done!");})
+```
+
+위의 코드를 그림으로 표현하면 다음과 같습니다.
+
+![promise](promise_01.png)
+
+`asyncThing3()`를 반환하는 `두번째 .then()`까지는 모두 `.catch(function(err) {return asyncRecovery1();})`의 에러반환을 따라가는 것을 확인할 수 있습니다.
 
 
 
 ## Async/await
 
+Async/await는 ES2017부터 지원하는 기능입니다. 프로미스보다 콜백지옥에서 코드를 더 깔끔하게 만들어줍니다. 
+
+```javascript
+function findAndSaveUser(Users){
+    Users.findOne({})
+        .then((user)=>{
+        user.name = 'park';
+        return user.save();	//리턴값을 다음으로 넘긴다
+    	})
+        .then((user)=>{
+        return Users.findOne({gender:'male'});
+    	})
+        .then((user)=>{
+        return user.job = 'student';
+    	})
+        .catch(err=>{
+        console.error(err);
+    	});
+}
+```
+
+위의 코드를 Async/await를 사용해 더 간결하게 만들어보겠습니다.
+
+```javascript
+async function findAndSaveUser(Users){
+	try{
+    	let user = await Users.findOne({});
+        user.name = 'park';
+        user = await user.save();
+        user = await Users.findOne({gender:'male'});
+        user.job = 'student';
+    }catch(err){
+        console.error(err);
+    }
+}
+```
+
+`async` 로 함수를 선언하고 `await`를 프로미스 앞에 붙여서 사용합니다.
