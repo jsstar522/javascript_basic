@@ -113,7 +113,40 @@ say();
 
 ## 명시적 바인딩, Explicit Binding
 
+Context에서 this는 항상 window를 가르킨다고 했습니다. 하지만 임의로 조정할 수 있습니다. 특정 객체에 `this`를 지정할 수 있습니다. 함수자체에 내장되어 있는 기본 메서드로 사용할 수 있습니다. 함수의 메서드 중에서 가장 많이 사용되는 메서드는 `call`, `apply`, `bind` 입니다. 이 메서드를 다음과 같이 기본적으로 사용할 수 있습니다.
+
+```javascript
+var example = function(a,b,c){
+    return a + b + c;
+};
+example(1,2,3);
+example.call(null,1,2,3);
+example.apply(null, [1,2,3]);
+example.bind(null);
+```
+
+`apply`는 `call`과 같은 기능이지만 인자를 하나로 묶어서 배열로 만들어 넣습니다. `null`에 들어가는 부분이 this를 가르키는 부분입니다. `call`과 `apply`는 함수를 실행하지만 `bind`는 실행하지 않습니다. 대신 함수자체를 반환합니다. 이제 다른 객체를 만들어서 객체의 지역변수객체를 바깥쪽에서 사용해보도록 하죠.
+
+```javascript
+//window
+var a = 10;
+var b = 20;
+var c = 30;
+
+var example = function(){
+    return this.a + this.b + this.c;
+};
+
+//새로운 객체
+var abc ={
+    a : 1,
+    b : 2,
+    c : 3,
+}
 
 
+example();	//60
+example.call(abc);	//6
+```
 
-
+가장 먼저 `window` 전역변수객체에 a, b, c가 들어가고 새로운 `객체 abc`에 다시 a, b, c가 들어갔습니다. **`example 함수`를 실행할 때 그냥 실행하면 전역 변수객체에 있는 `example`은 window에서 전역변수를 가져옵니다.** 하지만 **`call`을 통해 binding을 하면 `abc 변수객체`에서 변수를 가져옵니다.** 
