@@ -30,13 +30,13 @@ say();	//lee hello park
 
 실행과 동시에 가장 먼저 생기는 전역 컨텍스트입니다.
 
-```
+```javascript
 변수객체: {
     arguments : null,
         variable : ['name','wow', 'say']
 }
 scopeChain : [전역 변수객체]
-this.window
+this : window
 ```
 
 이후 variable의 대입이 시작됩니다.
@@ -108,6 +108,10 @@ say();
 ```
 
 하지만 함수 표현식(`var say = function(){}`)으로 사용하면 호이스팅은 일어나지 않습니다. 그 이유는 함수 선언식(`function say(){}`)은 컨텍스트가 생기고 나서 바로 함수로 대입되지만 함수 표현식은 대입이 바로 일어나지 않기 때문입니다. 
+
+
+
+## 명시적 바인딩, Explicit Binding
 
 
 

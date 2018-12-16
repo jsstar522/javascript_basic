@@ -120,6 +120,22 @@ a.b.c();	//b객체를 가르키고 b에 num2가 저정되어 있는 것을 확�
 
 마지막으로 변수를 선언할 때, const / let을 붙이느냐 그렇지 않느냐도 굉장히 중요합니다. 
 
+### 바인딩, Binding
+
+특정 객체에 `this`를 지정할 수 있습니다. 함수자체에 내장되어 있는 기본 메서드로 사용할 수 있습니다. 함수의 메서드 중에서 가장 많이 사용되는 메서드는 `call`, `apply`, `bind` 입니다. 이 메서드를 다음과 같이 기본적으로 사용할 수 있습니다.
+
+```javascript
+var example = function(a,b,c){
+    return a + b + c;
+};
+example(1,2,3);
+example.call(null,1,2,3);
+example.apply(null, [1,2,3]);
+example.bind(null);
+```
+
+`apply`는 인자를 하나로 묶어서 배열로 만들어 넣습니다. `null`에 들어가는 부분이 this를 가르키는 부분입니다. 
+
 
 
 ## 스코프 체인, Scope Chain
