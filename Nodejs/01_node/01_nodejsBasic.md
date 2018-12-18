@@ -85,36 +85,7 @@ function checkOddOrEven(num){
 export default checkOddOrEven;
 ```
 
-다음과 같이 사용하려면 확장자를 `.js`가 아닌 `.mjs`로 사용해야하고 node 실행시 `--experimental-modules` 옵션을 붙여줘야 합니다. 
-
-
-
-
-
-```javascript
-var http = require("http");
-
-http.createServer(function(request, response){
-    /* 
-        HTTP 헤더 전송
-        HTTP Status: 200 : OK
-        Content Type: text/plain
-    */
-    response.writeHead(200, {'Content-Type': 'text/plain'});
-    
-    /*
-        Response Body 를 "Hello World" 로 설정
-    */
-    response.end("Hello World\n");
-}).listen(8081);
-
-console.log("Server running at http://127.0.0.1:8081");
-
-//출처 : velopert.com
-
-```
-
-더 다양한 모듈을 사용하기 위해서는 `npm` 을 사용할 수 있습니다. npm은 node package manager의 줄인말로 node.js의 대규모 오픈소스 라이브러리 입니다. **기존의 node.js에 포함된 모듈 또한 포함하고 있기 때문에 필수적으로 사용되는 패키지입니다.**
+다음과 같이 사용하려면 확장자를 `.js`가 아닌 `.mjs`로 사용해야하고 node 실행시 `--experimental-modules` 옵션을 붙여줘야 합니다.
 
 
 

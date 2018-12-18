@@ -9,5 +9,5 @@ function checkStringOddEven(str){
 }
 
 console.log(checkNumber);
-//console.log(checkNumber(10));
-//console.log(checkStringOddEven('hello'));
+console.log(checkNumber(10));
+console.log(checkStringOddEven('hello'));

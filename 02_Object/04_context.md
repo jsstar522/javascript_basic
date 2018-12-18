@@ -45,6 +45,8 @@ this : window
 variable : [{name: 'park'},{wow: function},{say: function}]
 ```
 
+**함수가 표현식일 때는 곧바로 대입되지 않습니다.**
+
 ### 함수 컨텍스트(say)
 
 이제 say 함수가 실행되면서 `say 함수 컨텍스트`가 생깁니다. 인자는 없으니 arguments는 null입니다.
