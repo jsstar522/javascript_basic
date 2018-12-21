@@ -14,14 +14,20 @@ function Person(name, gender){
 }
 ```
 
-사람의 정보를 입력하는 생성자 함수를 만들었습니다. 생성자 함수는 `new`를 앞에 붙여서 호출합니다.
-
 ```javascript
 var park = new Person('Park','male');
 var lee = new Person('Lee', 'female');
 ```
 
+사람의 정보를 입력하는 생성자 함수를 만들었습니다. 생성자 함수는 `new`를 앞에 붙여서 호출합니다.
+
+* `this`를 붙여서 지역변수를 만듭니다. `this.name = name`은 **`name`이라는 매개변수를 받아서 `Person이라는 객체 안쪽`에 `name이라는 지역변수`를 만들겠다는 의미입니다.** `this`를 붙이지 않으면 전역객체에 변수가 만들어집니다.
+
+* 생성자 함수 호출시 `new`를 붙이지 않으면 생성자 내부의 `this`가 전역객체를 가르킵니다.
+
 **생성자 함수를 참조해 `park`이라는 사람과 `lee`라는 객체 2개를 만들었습니다.** 그리고 생성자 함수 안에 `sayHello`라는 함수도 만들기 때문에 `park.sayHello()`과 `lee.sayHello()`를 사용할 수 있습니다. 
+
+*(객체를 만드는 다양한 방법 : http://yookeun.github.io/javascript/2015/03/08/javascript-construct/)*
 
 
 

@@ -76,16 +76,18 @@ const a = ' He llo ';
 a.trim();	//He llo
 ```
 
-### 문자열 자르기, Substr
+### 문자열 자르기, Substr & Slice
 
 `substr(시작점 위치, 길이)`로 사용합니다. 시작점 위치부터 길이만큼 잘라냅니다. 
 
 ```javascript
 const a = 'Hello';
 a.substr(2,3);	//llo
+a.slice(2,4); //ll
+a.slice();	//Hello
 ```
 
-`substring(시적점 위치, 끝점 위치)`로도 사용가능합니다.
+또한 `substring(시적점 위치, 끝점 위치)`로 사용가능합니다.
 
 `slice(시작점, 끝점)`으로도 사용가능합니다. `slice()`는 시작위치를 음수로 사용할 수 있습니다.(음수는 뒤에서부터 몇번째인지 인덱싱)
 
