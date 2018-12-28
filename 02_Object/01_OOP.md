@@ -118,13 +118,13 @@ porsche.drive();	//porche is running with 120km/h
 
 ```javascript
 function Supercar(name, speed, enginePrice, bodyPrice){
-    Vehicle.apply(this, arguments);
+    Vehicle.apply(this, arguments);		//Vehicle의 this와 arguments(매개변수)를 적용
     this.enginePrice = enginePrice;
     this.bodyPrice = bodyPrice;
 }	//속성 상속
 ```
 
-Vehicle의 속성을 그대로 가져오는 `Vehicle.apply(this, arguments);`로 처리한 뒤 새로운 속성을 추가했습니다. Vehicle의 this 속성을 그대로 받으라는 의미입니다. (arguments는 매개변수를 의미합니다. Vehicle과 Supercar의 매개변수 중 name과 speed가 같기 때문에 그대로 공유됩니다.) 
+Vehicle의 속성을 그대로 가져오는 `Vehicle.apply(this, arguments);`로 처리한 뒤 새로운 속성을 추가했습니다. Vehicle의 this 속성을 그대로 받으라는 의미입니다. (arguments는 매개변수를 의미합니다. Vehicle과 Supercar의 매개변수 중 name과 speed가 같기 때문에 그대로 연결되고 새로운 `enginePrice`와 `bodyPrice`는 추가됩니다.) 
 
 이제 메서드도 상속시켜야겠죠?
 

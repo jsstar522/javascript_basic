@@ -1,0 +1,47 @@
+<!-- 기존 방법
+<!DOCTYPE html>
+<html>
+    <div id = 'count'>0</div>
+    <button id ='up'>+1</button>
+    <button id ='down'>-1</button>
+    <script>
+        var count = 0;
+        var counter = document.querySelector('#count');
+        document.querySelector('#up').addEventListener('click', function(){
+            count++;
+            counter.textContent = count;
+        });
+                document.querySelector('#down').addEventListener('click', function(){
+            count--;
+            counter.textContent = count;
+        });
+    </script>
+</html>
+-->
+
+<!-- defineProperty get,set 이용 -->
+<!DOCTYPE html>
+<html>
+    <div id = 'count'>0</div>
+    <button id ='up'>+1</button>
+    <button id ='down'>-1</button>
+    <script>
+        var count = {};
+        Object.defineProperty(count, 'number', {
+            get: function(){
+                return this._num || 0;
+            },
+            set: function(num){
+                this._num = num;
+                console.log(this._num);
+                document.querySelector('#count').textContent = this._num;
+            },
+        });
+        document.querySelector('#up').addEventListener('click', function(){
+            count.number++;
+        });
+        document.querySelector('#down').addEventListener('click', function(){
+            count.number--;
+        });
+    </script>
+</html>

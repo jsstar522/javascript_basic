@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <input id = "search" />
+    <script>
+    var timer;
+document.querySelector('#search').addEventListener('input', function(e) {
+    if(!timer){
+        timer = setTimeout(function(){
+            timer = null;
+            console.log(e.target.value, '를 입력하셨습니다.');
+        }, 2000);
+    }
+});
+  </script>
+  </body>
+  
+</html>

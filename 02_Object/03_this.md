@@ -16,14 +16,28 @@ a();
 
 함수 a를 실행하면 this의 정보가 나옵니다. this는 window를 가르키고 있는 것을 확인할 수 있습니다. `const num = 10;` 앞에 const를 빼면 "항상 window에 선언"하기 때문에 const를 빼고 실행하면 window 속성에 num : 10이 추가되어 있는 것을 확인할 수 있습니다.
 
-함수안에 함수에서 this를 출력하면 직전 함수가 선언했던 변수들을 가르키지 않을까요? 그렇지 않습니다. 메서드로 this를 출력하지 않는 이상 무조건 this는 window입니다.
+함수안에 함수에서 this를 출력하면 직전 함수가 선언했던 변수들을 가르키지 않을까요? 그렇지 않습니다. 메서드로 this를 출력하지 않는 이상 무조건 this는 window입니다. 
+
+그래서 생성자 함수를 실행해서 객체를 만들 때, 꼭 `new`를 붙여줘야 합니다. `new`를 붙여주지 않으면 생성자 함수 안에 속성을 정의하는 `this`는 모두 `window`를 가르키게 됩니다.
+
+```javascript
+function ObjectMaker(name, age){
+    this.name = name;
+    this.age = age;
+}
+
+park = ObjectMaker('park', '26');			//window.name = park, window.age = 26
+park = new ObjectMaker('park', '26');		//park.name = park, park.age = 26
+```
+
+이제 `함수로 this를 불러올 때`와 `메서드로 this를 불러올 때`의 차이점을 확인해보겠습니다.
 
 ```javascript
 const a = function(){
     const num = 10;
     const b = function(){
         const num2 = 20;
-        console.log(this);
+        console.log(this);		//함수안에 함수
     }
     b();
 }
@@ -58,7 +72,7 @@ const place = {
 place.b();	//place 객체를 빠져나와 다시 window를 가르킨다...
 ```
 
-다시 `window`를 가르킵니다. ~~이런 점들이 사람들을 미치게 만드는거죠.~~ 이것은 **메서드**가 실행될 때, `this`가 `place`를 "내부적으로만"가르키게 만들고 그 이후 안에 있는 `c함수`를 실행시키기 전에 this를 다시 명시하지 않았기 때문입니다. 쉽게 말해서 `b함수` 혼자만 알고 `c함수`는 몰랐던거죠. `c함수`가 실행될 때는 다시 `this`의 역할인 `window`를 가르키게 되는 겁니다.
+다시 `window`를 가르킵니다. ~~이런 점들이 사람들을 미치게 만드는거죠.~~ 이것은 **메서드**가 실행될 때, `this`가 `place`를 "내부적으로만"가르키게 만들고 그 이후 안에 있는 `c함수`를 실행시키기 전에 this를 다시 명시하지 않았기 때문입니다. 쉽게 말해서 `b함수` 혼자만 알고 `c함수`는 몰랐던거죠. `c함수`가 실행될 때는 다시 `this`의 역할인 `window`를 가르키게 되는 겁니다. 
 
 **즉, this가 메서드안에서 사용될 때는 scope가 해당 객체로 바뀌고(메서드는 객체 안에 함수가 있다는걸 가정하고 있죠.) 그냥 함수로 실행될 때는 무조건 window를 가르키고 있습니다. 그래서 this가 메서드에서 실행되느냐 그냥 함수에서 실행되느냐가 중요합니다. 그림으로 보겠습니다.**
 

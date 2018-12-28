@@ -270,7 +270,7 @@ a.every(function(x){
 
 #### 배열인지 확인, IsArray()
 
-`array.isArray(배열)` 배열인지 아닌지 판별합니다.
+`Array.isArray(대상)` 배열인지 아닌지 판별합니다.
 
 
 
@@ -295,4 +295,29 @@ product(1,2,3,4);	//10
 ```
 
 `product()` 에 어떤 크기의 숫자들이 들어와도 array라는 배열로 만들어서 처리합니다.
+
+
+
+## 유사배열
+
+```javascript
+const array = [1, 2, 3];
+const nodes = document.querySelectorAll('div');
+const els = document.body.children;
+//[div, div, div...]
+```
+
+`document.querySelectorAll('선택자')`은 DOM에서 해당 선택자를 모두 불러오는 메서드입니다. **`[]`로 감싸져 있기 때문에 배열같지만 배열이 아닌 유사배열입니다.** 그렇기 때문에 배열 메서드를 사용하지 못합니다.
+
+```javascript
+els.forEach((v) => console.log(v));			//els.forEach is not a function
+```
+
+유사배열에서 배열의 메서드를 사용하려면 배열 프로토타입에 유사배열을 binding하면 됩니다. binding은 `call`이나 `apply`를 사용하면 됩니다.
+
+```javascript
+Array.prototype.forEach.call(els, function(v){console.log(v);} );
+```
+
+배열인지 판별하는 법은 `Array.isArray(대상)`을 사용하면 됩니다.
 
