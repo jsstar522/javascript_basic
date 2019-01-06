@@ -113,9 +113,65 @@ place.b();	//place 객체를 빠져나와 다시 window를 가르킨다...
   place.b();	//num가 포함된 place객체를 가르킨다.
   ```
 
-![arrow function](this_02.jpg)
+### 일반함수와 Arrow Function의 Scope
 
-`객체 안의 객체`가 있다면 `객체 안의 객체의 메서드의 this`는 `객체 안의 객체`를 가르킵니다. ~~래퍼 아닙니다.~~ 직접 실행해보면 더 감이 올 겁니다.
+```javascript
+const a = {
+    num: 10,
+    f : function(){
+        const num_2 = 10;
+        const f_2 = () => {
+            console.log(this);
+        }
+        f_2();
+    }
+}
+
+a.f()		//a객체를 가르킨다.
+```
+
+일반 함수는 `동적인 탐색범위(scope)`를 갖기 때문에 자체 scope를 갖게 됩니다. **처음에 this가 window를 가르키고 있더라도 함수가 실행되면서 안에 this를 불러오면 속해 있는 객체를 찾아서 scope를 옮기게 되죠.** 그리고 **Arrow Function 안에 있는 this는 상위 Scope를 가르키므로 this가 현재 가르키고 있는 Scope (`f함수`)의 상위 scope인 `a객체`를 가르키게 됩니다.** 이 이유 때문에 Node에서 콜백함수는 대부분 arrow function으로 사용합니다. (콜백함수는 함수안에 함수를 선언하는거라 내부함수를 일반함수로 쓰면 scoping이 전역변수로 가는데, arrow function으로 쓰면 콜백함수가 속해있는 객체를 가르킵니다.)
+
+```javascript
+const a = {
+    num: 10,
+    f : () => {
+        const num_2 = 10;
+        const f_2 = () => {
+            console.log(this);
+        }
+        f_2();
+    }
+}
+
+a.f()		//window를 가르킨다.
+```
+
+Arrow function안에 arrow function이 있다면 this는 무엇을 가르킬까요? Arrow function은 정적인 탐색범위인 Lexical scope를 갖고 있습니다. 그렇기 때문에 **함수가 실행되기 전, 모든 객체와 Scope는 이미 정해집니다. 그래서 위 예제에서 this는 window를 가르키게 됩니다.** 더 쉽게 예시를 들어드리겠습니다. 이러한 성질 때문에 arrow function은 메서드(객체 안의 함수)로 사용되지 않습니다.
+
+```javascript
+const a = {
+    num : 10,
+    f : () => {
+        console.log(this.num);
+    }
+}
+a.f()		//error:num undefined
+```
+
+```javascript
+const a = {
+    num : 10,
+    f : function(){
+        console.log(this.num);
+    }
+}
+a.f()		//10
+```
+
+
+
+또한 `객체 안의 객체`가 있다면 `객체 안의 객체의 메서드의 this`는 `객체 안의 객체`를 가르킵니다. ~~래퍼 아닙니다.~~ 직접 실행해보면 더 감이 올 겁니다.
 
 ```javascript
 const a = {
@@ -129,6 +185,23 @@ const a = {
 }
 a.b.c();	//b객체를 가르키고 b에 num2가 저정되어 있는 것을 확인할 수 있다.
 ```
+
+만약에 일반함수가 아닌 arrow function이라면 어떨까요?
+
+```javascript
+const a = {
+    num : 10,
+    b :	{
+        num2: 20,
+        c : () => {
+            console.log(this);
+        }
+    }
+}
+a.b.c();		//window를 가르킨다.
+```
+
+위에서 말했던 것처럼 arrow function은 정적인 스코프를 가지므로 선언과 동시에 this는 window로 정해집니다. 그렇기 때문에 this는 window를 가르킵니다.
 
 **헷갈린다면 두가지만 기억하면 됩니다. 함수가 어떤 객체 안에서 실행되는지, 그리고 메서드 안에 함수를 실행할 때 this를 제대로 명시하고 있는지(그렇지 않은지).**
 
