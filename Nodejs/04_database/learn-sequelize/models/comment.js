@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('user', {
+  return sequelize.define('comment', {
     comment: {
       type: DataTypes.STRING(100),
       allowNull: false,
@@ -10,6 +10,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('now()'),
     },
   },{
-    tiemstamps: false,      //시간 자동생성 해제(create_at을 만들었으므로)
+    timestamps: false,      //시간 자동생성 해제(created_at을 만들었으므로)
   })
 }

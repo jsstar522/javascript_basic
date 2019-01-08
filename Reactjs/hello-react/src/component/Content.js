@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import logo from '../logo.svg';
+import '../App.css';
 
-class App extends Component {
+class Content extends Component {
+  sayHello() {
+    alert('Hello');
+  }
   render() {
     return (
       <div className="App">
@@ -19,10 +22,12 @@ class App extends Component {
           >
             Learn React
           </a>
+          <button onClick={this.sayHello}>Click Me</button>
+          {console.log(this)}
         </header>
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default Content;

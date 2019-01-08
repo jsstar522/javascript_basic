@@ -47,3 +47,56 @@ $ create-react-app hello-react
 ```
 
 폴더 하위에 `hello-react`라는 리엑트 프로젝트가 생성되었습니다. `hello-react` 폴더로 이동해서 `npm start` or `yarn start`를 통해 프로젝트를 실행시킬 수 있습니다.
+
+
+
+## JSX
+
+리엑트는 일반 자바스크립트 문법을 사용할 수도 있지만 JSX 문법을 사용하면 더 유리합니다. JSX 문법이 사용된 `src/App.js`파일을 확인해보죠.
+
+```react
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+
+class App extends Component {
+  sayHello() {
+    alert('Hello');
+  }
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            Edit <code>src/App.js</code> and save to reload.
+          </p>
+          <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn React
+            <button onClick={this.sayHello}>Click Me</button>
+			{/*this 확인*/}
+            {console.log(this)}
+          </a>
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+* import는 ES6에서 사용할 수 있는 문법으로 `import React from 'react';` = `var React = require('react');`와 같습니다. 여기서 react는 `Component`의 사용을 가능하게 하는 모듈입니다.
+* class 역시 ES6에서 새롭게 사용할 수 있습니다. `App 클래스`는 prototype으로 따로 선언할 필요없이 Componet를 상속합니다.
+* class 안의 `render()`는 이하 내용을 렌더링해서 화면에 보여줍니다.
+* JSX 안쪽의 내용은 HTML과 거의 유사합니다.
+* 렌더링 되는 내용의 element들은 **div(container element)로 감싸줘야 합니다.**
+* 자바스크립트 문법을 사용하려면 `{}`으로 감싸주면 됩니다.
+* 메서드를 사용할 수 있습니다. **클래스 안의 `render() ` 함수 안에서 메서드를 사용하므로** `this.sayHey`로 작성합니다. 뒤의 `()`는 붙이지 않습니다. 붙이면 페이지가 로드됨과 동시에 함수가 바로 실행되기 때문입니다.
+* JSX 안에서 사용하는 자바스크립트는 if문을 사용할 수 없습니다. `ternary(condition ? true : false)`를 사용해야 합니다.
+

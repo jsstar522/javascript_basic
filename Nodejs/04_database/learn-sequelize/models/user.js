@@ -17,12 +17,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    create_at: {
+    created_at: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('now()'),
     },
   },{
-    tiemstamps: false,      //시간 자동생성 해제(create_at을 만들었으므로)
+    timestamps: false,      //시간 자동생성 해제(create_at을 만들었으므로)
   })
 }
