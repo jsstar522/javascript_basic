@@ -318,7 +318,7 @@ document.getElementById('comment-form').addEventListener('submit', function (e) 
 });
 ```
 
-AJAX 요청을 보내는 코드입니다. **버튼을 누르면 요청이 서버의 라우터로 이동합니다.** 브라우저에서 `<script>~</script>`로 접근하는 파일이므로 `public`폴더에 넣어줬습니다. 이제 요청들이 통과할 라우터들을 `app.js`에 미리 등록합니다.
+AJAX 요청을 보내는 코드입니다. **버튼을 누르면 요청이 서버의 라우터로 이동합니다.** 브라우저에서 `<script>~</script>`로 접근하는 파일이므로 `public`폴더에 넣어줬습니다. 이제 요청들이 통과할 라우터들을 서버파일인  `app.js`에 미리 등록합니다.
 
 ```javascript
 //app.js

@@ -20,6 +20,8 @@ $ mysql -h localhost -u root -p
 
 ## Node에서 MySQL 사용하기
 
+### 시퀄라이즈, Sequelize
+
 Node에서 MySQL을 쉽게 사용할 수 있도록 도와주는 `Sequelize(시퀄라이즈)` 라이브러리를 사용합니다. 시퀄라이즈는 자바스크립트 문법을 SQL 예약어로 자동으로 바꿔줍니다. 먼저 시퀄라이즈를 사용할 프로젝트를 Express-generator로 생성합니다.
 
 ```javascript
@@ -90,6 +92,8 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+module.exports = db;
 ```
 
 

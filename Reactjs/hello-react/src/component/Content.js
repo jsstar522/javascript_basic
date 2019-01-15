@@ -1,33 +1,23 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import logo from '../logo.svg';
 import '../App.css';
 
 class Content extends Component {
-  sayHello() {
-    alert('Hello');
-  }
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          <button onClick={this.sayHello}>Click Me</button>
-          {console.log(this)}
-        </header>
+      <div>
+        <h2>{this.props.title}</h2>
+        <p>{this.props.body}</p>
+        
       </div>
     )
   }
 }
+
+Content.propTypes = {
+  title: PropTypes.string,
+  body: PropTypes.string.isRequired,
+};
 
 export default Content;

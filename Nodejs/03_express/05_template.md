@@ -99,7 +99,7 @@ html
 ```
 
 ```jade
-<!--vies/test.pug-->
+<!--views/test.pug-->
 extends layout
 
 block content

@@ -98,7 +98,7 @@ place.b();	//place 객체를 빠져나와 다시 window를 가르킨다...
   place.b();	//num가 포함된 place객체를 가르킨다.
   ```
 
-* `Arrow function`을 사용합니다. Arrow function의 this는 window가 아닌 상위 객체를 가르킵니다.
+* `Arrow function`을 사용합니다. Arrow function의 this는 window가 아닌 상위 객체를 가르킵니다. 자동으로 this를 바인딩 해줍니다.
 
   ```javascript
   const place = {
