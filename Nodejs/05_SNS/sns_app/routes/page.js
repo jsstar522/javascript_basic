@@ -1,5 +1,7 @@
 const express = require('express');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
+const { Post, User } = require('../models');
+
 const router = express.Router();
 
 router.get('/profile', isLoggedIn, (req, res) => {
@@ -15,12 +17,25 @@ router.get('/join', isNotLoggedIn, (req, res) => {
 });       
 
 router.get('/', (req, res, next) => {
-  res.render('main', {
-    title: 'SNSApp',
-    twits: [],
-    user: req.user,
-    loginError: req.flash('loginError'),
-  });
+  Post.findAll({
+    include: {
+      model: User,
+      attributes: ['id', 'nick'],
+    },
+    order: [['createdAt', 'DESC']],
+  })
+    .then((posts) => {
+      res.render('main', {
+        title: 'SNSApp',
+        twits: posts,
+        user: req.user,
+        loginError: req.flash('loginError'),
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      next(error);
+    });
 });
 
 module.exports = router;

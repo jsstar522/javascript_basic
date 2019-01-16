@@ -363,7 +363,7 @@ module.exports = db;
 * User - Post는 1:N 관계입니다.
 * Post - Hashtag는 N:M 관계입니다. 시퀄라이즈는 id를 자동으로 생성하므로 foreignKey도 자동으로 생성합니다.![다대다](NM.png)
 
-* Following-Follower도 마찬가지로 N:M 관계입니다. Post와 Hashtag 테이블은 앞서 Models에서 컬럼이름을 부여했지만 Following과 Follower는 부여하지 않았으므로 foreignKey로 누가 팔로워고 누가 팔로잉하는지 구별하도록 합니다. as는 JOIN 작업시 사용되는 이름입니다.
+* Following-Follower도 마찬가지로 N:M 관계입니다. Post와 Hashtag 테이블은 앞서 Models에서 컬럼이름을 부여했지만 Following과 Follower는 부여하지 않았으므로 foreignKey로 누가 팔로워고 누가 팔로잉하는지 구별하도록 합니다. as는 JOIN 작업시 사용되는 이름입니다. as에서 지정한 이름으로 `getFollowings`, `getFollowers`, `addFollowing`, `addFollower` 등의 메서드를 시퀄라이즈가 자동으로 추가합니다.
 
 
 
