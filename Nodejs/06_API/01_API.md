@@ -350,7 +350,7 @@ exports.verifyToken = (req, res, next) => {
 };
 ```
 
-인증과정을 미들웨어에 장착했습니다. `jwt.verify`는 토큰을 검증하는 메서드입니다. 첫번째 인자는 토큰정보, 두번째 인자는 토큰의 비밀키입니다. `req.headers.authorization`로 토큰정보를 뽑아내므로 요청의 header에 토큰을 심어주면 되겠죠. 토큰의 내용은 `req.decoded`에 넣어뒀습니다. 이제 토큰 발급 라우터를 작성합니다. 
+`jwt.verify`는 토큰을 검증하는 메서드입니다. 해쉬화된 토큰을 decoding 해줍니다. 첫번째 인자는 토큰정보, 두번째 인자는 토큰의 비밀키입니다. **토큰 비밀키는 API서버 `.env`에 `SNSappsecret`라고 저장했습니다. `SNSappsecret`의 방식으로만 토큰을 decoding하는겁니다. 이는 API 서버만 알고 있어야 합니다.**
 
 ```javascript
 // routes/v1.js
@@ -409,13 +409,13 @@ module.exports = router;
 
 라우터에 버전을 붙여서 기존에 API를 사용하고 있는 유저들에게 오작동을 일으키지 않도록 합니다. 
 
-* 등록된 도메인인지 먼저 확인합니다(`Domain.find()`)
+* 외부사용자가 보낸 클라이언트 비밀키를 통해 등록된 API서버 데이터베이스에 도메인이 존재하는지 확인합니다.(`Domain.find()`)
 * 등록된 도메인이라면 토큰을 발급합니다(`jwt.sign()`)
   * 첫번째 인자: 토큰의 내용
   * 두번째 인자: 토큰의 비밀키
   * 세번째 인자: 토큰 설정 (만료일, 발급자)
 
-* `/test`경로로 발급받은 토큰을 확인해볼 수 있습니다.
+* **나중에 외부인이 접근할 수 있는 라우터 두개를 만들었습니다.** `v1/token`은 토큰을 발급해주는 라우터고, `v1/test`는 토큰을 확인하는 라우터입니다.
 
 이제 서버에 연결합니다.
 
@@ -430,6 +430,8 @@ app.use('v1', v1);
 
 //...
 ```
+
+
 
 ## 호출서버
 
@@ -465,11 +467,9 @@ API를 사용하는 호출서버를 만듭니다. 호출서버는 위에서 만�
 서버를 만듭니다.
 
 ```javascript
-// app.js
+// sns_app-call/app.js
 
 const express = require('express');
-const path = require('path');
-const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 require('dotenv').config();
@@ -478,11 +478,10 @@ const indexRouter = require('./routes');
 
 const app = express();
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+//포트설정
 app.set('port', process.env.PORT || 8003);
 
-app.use(morgan('dev'));
+//session 심기
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(session({
   resave: false,
@@ -496,21 +495,8 @@ app.use(session({
 
 app.use('/', indexRouter);
 
-app.use((req, res, next) => {
-  const err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-app.use((err, req, res) => {
-  res.local.message = err.message;
-  res.local.error = req.app.get('env') === 'development' ? err: {};
-  res.status(err.status || 500);
-  res.render('error');
-});
-
 app.listen(app.get('port'), () => {
-  console.log(app.get('port'), '번 포트 대기 중');
+  console.log(app.get('port'), '번 포트에서 대기 중');
 });
 ```
 
@@ -530,45 +516,46 @@ COOKIE_SECRET=SNSappsecret
 CLIENT_SECRET=3eef7bf5-fde8-46fb-ab6e-f11a0779d059
 ```
 
-**이렇게 내가 만드는 웹 페이지에서 다른 웹 페이지의 API를 사용할 수 있고 데이터도 가져올 수 있습니다.** 이제 토큰이 정상적으로 인증되는지 확인하기 위해서 라우터를 작성하겠습니다.
+**이렇게 내가 만드는 웹 페이지에서 다른 웹 페이지의 API를 사용할 수 있고 데이터도 가져올 수 있습니다.** 이제 토큰이 정상적으로 발급되는지 확인하기 위해서 라우터를 작성하겠습니다. **서버API에서 외부인을 위해 만들어놓은 라우터(`v1/token`, `v1/test`)에 접근하겠습니다.**
 
 ```javascript
-// routes/index.js
+// sns_app-call/routes/index.js
 
 const express = require('express');
+//axios: 다른주소로 요청을 보내는 모듈
 const axios = require('axios');
+
 const router = express.Router();
 
-router.get('/test', async(req, res, next) => {
-  try{
-    if(!req.session.jwt){   //세션에 토큰이 없을 경우
+router.get('/test', async (req, res, next) => {
+  try {
+    if (!req.session.jwt) {    //현재 요청의 세션에 토큰이 없으면 발급
       const tokenResult = await axios.post('http://localhost:8002/v1/token', {
         clientSecret: process.env.CLIENT_SECRET,
       });
-      if (tokenResult.data && tokenResult.data.code == 200){
-        req.session.jwt = tokenResult.data.token;   //세션에 토큰 저장
-      }else{
-        return res.json(tokenResult.data);        //토큰 발급 에러
+      console.log(tokenResult.data);;                //토큰이 발급되었는지 확인
+      if (tokenResult.data && tokenResult.data.code === 200) {
+        req.session.jwt = tokenResult.data.token;   //현재 요청 session.jwt에 토큰 내용 저장
+        console.log(req.session);                   //세션에 토큰이 들어갔는지 확인
+      } else {
+        return res.json(tokenResult.data);  //에러 내용도 토큰 데이터에 저장된다.
       }
     }
-    //발급받은 토큰 테스트
     const result = await axios.get('http://localhost:8002/v1/test', {
       headers: { authorization: req.session.jwt },
     });
+    console.log(result.data);               //암호화된 토큰이 API서버를 통해 decoding 됐는지 확인
     return res.json(result.data);
-  }catch(error) {
-    console.error(error);
-    if(error.response.status === 419){    //토큰 만료시 에러
-      return res.json(error.response.data);
-    }
+  }catch(error){
     return next(error);
   }
-});
+})
 
 module.exports = router;
 ```
 
-* `/test` 경로 요청 라우터입니다. 두가지로 나뉩니다. 첫번째는 세션에 토큰을 찾지 못하면 `http://localhost:8002/v1/token` 경로로 `POST` 요청을 보내고 결과값을 `tokenResult`에 저장합니다. `axios.post(경로, { 데이터 })`는 경로에 POST 요청을 보내면서 본문에 데이터를 함께 보냅니다. 이 경우는 **발급받은 clientSecret을 함께 보내면서 API 서버의 `v1.js`에서 해당 도메인이 있는지 clientSecret으로 확인합니다.**
+* `axios`는 다른 서버로 요청을 보내는 모듈입니다.
+* `/test` 경로 요청 라우터입니다. 첫번째는 세션에 토큰을 찾지 못하면 `http://localhost:8002/v1/token` 경로로 `POST` 요청을 보내고 결과값을 `tokenResult`에 저장합니다. `axios.post(경로, { 데이터 })`는 경로에 POST 요청을 보내면서 본문에 데이터를 함께 보냅니다. 이 경우는 **발급받은 clientSecret을 함께 보내면서 API 서버의 `v1.js`에서 해당 도메인이 있는지 clientSecret으로 확인합니다.**
 
 * 세션에서 토큰을 찾아냈다면 `http://localhost:8002/v1/test`경로로 `GET` 요청을 보내고 결과값을 반환합니다. `axios.get(경로, { 헤더 })`는 경로에 GET 요청을 보내면서 헤더와 함께 보냅니다. 이 경우는 **헤더에 세션의 토큰을 담아서 요청하는 것입니다.** 
 
@@ -576,16 +563,39 @@ module.exports = router;
 
 ![token](token.png)
 
-1분 뒤에 새로고침을 하면 토큰이 사라진 것을 볼 수 있습니다. 이제 API를 이용해서 내가 올린 게시글과 해쉬태그를 받아오도록 하겠습니다. 다시 API 서버로 이동해서 데이터를 제공해주는 라우터를 추가하겠습니다.
+1분 뒤에 새로고침을 하면 토큰이 사라진 것을 볼 수 있습니다. 이제 API 호출서버(외부인)를 이용해서 내가 올린 게시글과 해쉬태그를 받아오도록 하겠습니다. 다시 API 서버로 이동해서 외부인에게 데이터를 제공해주는 라우터를 추가하겠습니다.
 
 ```javascript
 // sns_app-api/routes/v1.js
 //...
 //추가
-router.get('/posts/hashtag/:title', verifyToken, async(req,res) => {
-  try{
-    const hashtag = await Hashtag.find({ where: { title: req.params.title }});
-    if(!hashtag){
+
+router.get('/posts/my', verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findAll({ where: { userId: req.decoded.id } });
+    if (!post) {
+      return res.status(404).json({
+        code: 404,
+        message: '검색 결과가 없습니다',
+      });
+    }
+    return res.json({
+      code: 200,
+      payload: post,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      message: '서버 에러',
+    });
+  }
+});
+
+router.get('/posts/hashtag/:title', verifyToken, async (req, res) => {
+  try {
+    const hashtag = await Hashtag.find({ where: { title: req.params.title } });
+    if (!hashtag) {
       return res.status(404).json({
         code: 404,
         message: '검색 결과가 없습니다',
@@ -596,7 +606,7 @@ router.get('/posts/hashtag/:title', verifyToken, async(req,res) => {
       code: 200,
       payload: posts,
     });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     return res.status(500).json({
       code: 500,
@@ -606,12 +616,13 @@ router.get('/posts/hashtag/:title', verifyToken, async(req,res) => {
 });
 ```
 
-`localhost:8002/posts/hashtag/:title`에서 제공하는 게시글과 해쉬태그의 데이터를 `localhost:8003/mypost`와 `localhost:8003/search/[해쉬태그이름]`으로 각각 접근하면 데이터를 가져올 수 있도록 서버를 다시 설정합니다.
+`localhost:8002/posts/my`와 `localhost:8002/posts/hashtag/:title`에서 제공하는 게시글과 해쉬태그의 데이터를 `localhost:8003/mypost`와 `localhost:8003/search/[해쉬태그이름]`으로 각각 접근하면 데이터를 가져올 수 있도록 서버를 다시 설정합니다. **외부인을 위한 라우터를 만들었으니 외부인은 다시 이 라우터를 사용하기 위해서 `axios`를 사용해서 요청을 간접적으로 보내야합니다. 위에서 만들었던  `sns_app-call/routes/index.js`에는 `/test` 경로에만 접근했을 경우 토큰을 발행했습니다. 이제 게시글 조회, 해쉬태그 조회를 할 때마다 토큰을 발행해야하므로 토큰발행을 함수화 하겠습니다.**
 
 ```javascript
 // sns_app-call/routes/index.js
 
 const express = require('express');
+//axios: 다른주소로 요청을 보내는 모듈
 const axios = require('axios');
 
 const router = express.Router();
@@ -619,15 +630,15 @@ const URL = 'http://localhost:8002/v1';
 
 const request = async(req, api) => {
   try{
-    if(!req.session.jwt){   //세션에 토크이 없을 경우
+    if(!req.session.jwt){    //(1): 현재 요청의 세션에 토큰이 없으면 발급
       const tokenResult = await axios.post(`${URL}/token`, {
         clientSecret: process.env.CLIENT_SECRET,
       });
       req.session.jwt = tokenResult.data.token;   //세션에 토큰 저장
     }
     return await axios.get(`${URL}${api}`, {
-      headers: {authorization: req.session.jwt },
-    }); //API 요청
+      headers: { authorization: req.session.jwt },
+    });     //(2): 토큰확인(test), 게시글확인(posts), 해쉬태그확인(posts/hashtag/:title)에 따라서 다른 경로 접근
   }catch(error){
     console.error(error);
     if(error.response.status < 500){
@@ -637,25 +648,35 @@ const request = async(req, api) => {
   }
 };
 
-router.get('/mypost', async(req, res, next) => {
+router.get('/test', async(req, res, next) => {
   try{
-    const result = await request(req, '/posts/my');
+    const result = await request(req, '/test');
     res.json(result.data);
   }catch(error){
     console.error(error);
     next(error);
   }
+})
+
+//게시글을 확인하는 라우터
+router.get('/mypost', async (req, res, next) => {
+  try {
+    const result = await request(req, '/posts/my');
+    res.json(result.data);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
 });
 
+//해쉬태그를 확인하는 라우터
 router.get('/search/:hashtag', async(req, res, next) => {
   try{
-    const result = await request(
-      req, `/posts/hashtag/${encodeURIComponent(req.params.hashtag)}`,
-    );
+    const result = await request(req, `/posts/hashtag/${encodeURIComponent(req.params.hashtag)}`)   //(4): 요청중에서 쿼리스트링 중 hashtag에 해당하는 값을 포함해 요청을 보냄
     res.json(result.data);
-  }catch(error){
+  }catch(error) {
     if(error.code){
-      console.error(error);
+      console.log(error);
       next(error);
     }
   }
@@ -664,3 +685,207 @@ router.get('/search/:hashtag', async(req, res, next) => {
 module.exports = router;
 ```
 
+* (1): 토큰을 발행해주는 API서버 라우터는 `localhost:8002/v1/token`주소에 있습니다. 
+* (2): 토큰확인(`/test`), 게시글확인(`/posts/my`), 해쉬태그확인(posts/hashtag/:title)에 따라서 다른 경로 접근하기 위해 `api`라는 변수를 인자로 받습니다.
+* (3): 만들어둔 `request` 함수를 사용합니다. 위에서 설명했던 것처럼 이 함수는 인자를 두개를 받습니다. 첫번째는 요청, 두번째는 간접적으로 요청을 보낼 경로입니다. 이 라우터는 게시글을 확인하는 `/posts/my`로 요청을 보내야 하므로 두번째 인자에 넣어 줬습니다.
+* (4): 쿼리스트링을 통해 hashtag를 검색합니다. 쿼리스트링 중 hashtag에 해당하는 값을 요청에 포함해 서버API로 보냅니다. 즉 `/search/일상`이라는 요청을 외부인이 보내면 API서버에서는 `/posts/hashtag/일상`으로 요청을 받고 데이터베이스 hashtag 중에서 value가 `일상`인 column를 모두 가져옵니다. 
+
+이제 `localhost:8003/mypost`로 접근하거나 `localhost:8003/search/검색어`로 접근하면 다음과 같이 JSON으로 내가 쓴 게시글이 나오게 됩니다.
+
+![API POST](API_post.png)
+
+## 사용량 제한 설정
+
+과도하게 API를 사용하지 못하도록 사용량에 제한을 둘 수 있습니다. 도메인 부여시 `일반`과 `프리미엄`으로 나누어 무료 이용자와 유료 이용자를 나눴습니다. 이를 구현하려면 `express-rate-limit` 패키지를 사용하는 것이 좋습니다.
+
+```bash
+$ npm i express-rate-limit
+```
+
+`RateLimiter` 미들웨어를 장착합니다.
+
+```javascript
+//sns_app-api/routes/middlewares/js
+//...
+//추가
+
+exports.apiLimiter = new RateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 1,
+  delayMs: 0,
+  handler(req, res) {
+    res.status(this.statusCode).json({
+      code: this.statusCode, // 기본값 429
+      message: '1분에 한 번만 요청할 수 있습니다.',
+    });
+  },
+});
+
+exports.deprecated = (req, res) => {
+    res.status(410).json({
+        code: 410,
+        message: '새로운 버전이 나왔습니다. 새로운 버전을 사용하세요.'
+    });
+};
+```
+
+* windowMs: 기준시간
+* max: 허용 횟수
+* delayMs: 호출 간격
+* handler: 제한시 호출하는 콜백함수
+
+이제 요청을 받아들이는 라우터가 `apiLimiter` 미들웨어를 거치면 사용량에 제한이 생깁니다. `deprecated`는 이제 다른 버전의 라우터를 만들어보겠습니다. 기존에 만들었던 v1 버전의 라우터에 미들웨어만 장착해주면 됩니다.
+
+```javascript
+// sns_app-api/routes/v2.js
+
+const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const { verifyToken, apiLimiter } = require('./middlewares');
+const { Domain, User, Post, Hashtag } = require('../models');
+
+const router = express.Router();
+
+router.post('/token', apiLimiter, async (req, res) => {
+  const { clientSecret } = req.body;
+  try {
+    const domain = await Domain.find({
+      where: { clientSecret },
+      include: {
+        model: User,
+        attribute: ['nick', 'id'],
+      },
+    });
+    if (!domain) {
+      return res.status(401).json({
+        code: 401,
+        message: '등록되지 않은 도메인입니다. 먼저 도메인을 등록하세요',
+      });
+    }
+    const token = jwt.sign({
+      id: domain.user.id,
+      nick: domain.user.nick,
+    }, process.env.JWT_SECRET, {
+      expiresIn: '5m', // 5분
+      issuer: 'nodebird',
+    });
+    return res.json({
+      code: 200,
+      message: '토큰이 발급되었습니다',
+      token,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      message: '서버 에러',
+    });
+  }
+});
+
+router.get('/test', verifyToken, apiLimiter,(req, res) => {
+  res.json(req.decoded);
+});
+
+router.get('/posts/my', apiLimiter, verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findAll({ where: { userId: req.decoded.id } });
+    if (!post) {
+      return res.status(404).json({
+        code: 404,
+        message: '검색 결과가 없습니다',
+      });
+    }
+    return res.json({
+      code: 200,
+      payload: post,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      message: '서버 에러',
+    });
+  }
+});
+
+router.get('/posts/hashtag/:title', verifyToken, apiLimiter, async (req, res) => {
+  try {
+    const hashtag = await Hashtag.find({ where: { title: req.params.title } });
+    if (!hashtag) {
+      return res.status(404).json({
+        code: 404,
+        message: '검색 결과가 없습니다',
+      });
+    }
+    const posts = await hashtag.getPosts();
+    return res.json({
+      code: 200,
+      payload: posts,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      code: 500,
+      message: '서버 에러',
+    });
+  }
+});
+
+module.exports = router;
+```
+
+v2 버전이 나왔으니 v1을 사용할 시 경고메세지를 띄우기 위해 `deprecated` 미들웨어를 끼워줍니다.
+
+```javascript
+// sns_app-api/routes/v1.js
+// 추가
+const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const { verifyToken, deprecated } = require('./middlewares');
+const { Domain, User, Post, Hashtag } = require('../models');
+
+const router = express.Router();
+
+router.use(deprecated);
+//...
+```
+
+**`deprecated`는 `router.use`를 통해 모든 요청이 이 미들웨어를 거치도록 했습니다. 위에서 `apiLimiter`도 모든 라우터가 `apiLimiter` 미들웨어를 거치면 `router.use`로 한줄만 추가해서 사용해도 됩니다.**
+
+모든 요청에 대해 `deprecated`를 거치도록 해야하므로 `router.use(deprecated)`로 사용합니다. 이제 서버에 라우터를 붙여줍니다.
+
+```javascript
+// sns_app-api/app.js
+// 추가
+// ...
+const v2 = require('./routes/v2');
+
+app.use('/v2', v2);
+//...
+```
+
+이제 API호출 서버로 다시 돌아와서 토큰이 발급되는지 확인해보겠습니다. ![API Limiter](API_limiter.png)
+
+아직 `sns_app-call`은 v1을 사용하고 있으므로 새로운 버전을 사용하라는 메세지를 보냅니다. 이제 v2로 바꿔보겠습니다.
+
+```javascript
+// sns_app-call/routes/index.js
+//...
+//변경
+
+const URL = 'http://localhost:8002/v2';
+
+//...
+```
+
+버전을 바꾸고 `localhost:8003/test`로 들어가면 전과 똑같이 토큰의 내용을 보여줍니다. 하지만 곧바로 다시 클릭하면 다음과 같은 메세지를 보냅니다.
+
+![API limter](API_limiter_2.png)
+
+### Error Note
+
+* API 호출서버(sns_app-call)을 사용해서 토큰을 발급받지 못함. `Error: Request failed with status code 401`:  **매 요청마다 `console.log`를 찍어본 결과 토큰 발급과 세션에 넣는 코드까지 잘 동작. 하지만 요청 헤더에서 토큰을 찾지 못함. 알고보니 headers를 header로 썼다.**
+* API 호출서버(sns_app-call)에서 게시글을 받아오는 라우터(`/posts/my`)를 promise 문으로 쓰니 잘 되지 않음. `Error: Request failed with status code 500`: **밑에 있는 hashtag 받아오기는 잘돼서 그대로 복사해 경로만 바꾸면서 만들었다. async/await로 사용 하니 해결**

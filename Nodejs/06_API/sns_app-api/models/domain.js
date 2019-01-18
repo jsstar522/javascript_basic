@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => (
     validate: {
       unknownType() {
         console.log(this.type, this.type !== 'free', this.type !== 'premium');
-        if(this.type !== 'free' && this.type !== 'premium'){
+        if (this.type !== 'free' && this.type !== 'premium') {
           throw new Error('type 컬럼은 free나 premium이어야 합니다.');
         }
       },
