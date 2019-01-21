@@ -188,4 +188,415 @@ export default App;
 
 
 
+## 데이터 삭제
+
+데이터를 삭제할 때도 기존에 있던 데이터를 직접적으로 변경해선 안됩니다. 
+
+```javascript
+const array = [1, 2, 3, 4, 5];
+```
+
+다음과 같은 배열이 있을 때, 가운데에 있는 '3'을 빼고 싶다면 이렇게 하면 됩니다.
+
+```javascript
+array.slice(0, 2).concat(array.slice(3, 5));
+```
+
+```javascript
+[...array.slice(0, 2), ...array.slice(3, 5)];
+```
+
+새로운 배열 [1, 2, 4, 5]가 만들어지게 됩니다. 하지만 더 간편하게 요소를 필터링 해서 '새로운' 배열을 만들어주는 `array`자체 메서드가 존재합니다.
+
+```javascript
+array.filter(num => num !== 3);
+```
+
+3이 아닌 요소들만 골라서 새로운 배열 [1, 2, 4, 5]를 만듭니다. 이제 전화번호부를 삭제하는 기능을 만들어 보겠습니다. `App.js`에 메서드를 추가합니다.
+
+```javascript
+// App.js
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+import PhoneForm from './components/PhoneForm';
+import PhoneInfo from './components/PhoneInfo';
+import PhoneInfoList from './components/PhoneInfoList';
+
+class App extends Component {
+  id = 2
+  state = {
+    information: [
+    {
+      id: 0,
+      name: 'park',
+      phone: '010-1234-5678',
+    },
+    {
+      id: 1,
+      name: 'lee',
+      phone: '010-5459-7895',
+    }
+    ]
+  }
+
+  handleCreate = (data) => {
+    const { information } = this.state;
+    this.setState({
+      information: information.concat({ id: this.id++, ...data })
+    })
+  }
+
+  handleRemove = (id) => {
+    const { information } = this.state;
+    this.setState({
+      information: information.filter(info => info.id !== id)
+    })
+  }
+  
+  render() {
+    return (
+      <div>
+        <PhoneForm 
+          onCreate={this.handleCreate}
+        />
+        {JSON.stringify(this.state.information)}
+        <PhoneInfoList 
+          data = {this.state.information} 
+          onRemove={this.handleRemove}
+        />
+      </div>
+    );
+  }
+}
+
+export default App;
+
+```
+
+**이제 하위 컴포넌트에게 `handleRemove`메서드를 담은 `onRemove`를 전달해주기 위해서 props를 사용합니다.**
+
+```javascript
+// components/PhoneInfoList.js
+
+import React, { Component } from 'react';
+import PhoneInfo from './PhoneInfo';
+
+class PhoneInfoList extends Component {
+  static defaultProps = {
+    data: [],
+    onRemove: () => console.warn('onRemove not defined'),
+  }
+  render(){
+    const { data, onRemove } = this.props;
+    const list = data.map(
+      info => (<PhoneInfo key={info.id} info={info} onRemove={onRemove}/>)
+    );
+    return(
+      <div>
+        {list}
+      </div>
+    );
+  }
+}
+
+export default PhoneInfoList;
+```
+
+이제 전화번호부 하나하나 당 삭제버튼을 만들기 위해 `/components/PhoneInfo.js`에 기능을 추가하겠습니다.
+
+```javascript
+// components/PhoneInfo.js
+
+import React, { Component } from 'react';
+
+class PhoneInfo extends Component{
+  static defaultProps = {
+    info: {
+      name: '이름',
+      phone: '010-0000-0000',
+      id: 0,
+    },
+  }
+
+  handleRemove = () => {
+    // 삭제 버튼이 클릭되면 onRemove 에 id 넣어서 실행됨
+    const { info, onRemove } = this.props;
+    onRemove(info.id);
+  }
+  
+
+  render(){
+    const style = {
+      border: '1px solid black',
+      padding: '8px',
+      margin: '8px',
+    }
+    const {
+      name, phone, id
+    } = this.props.info;
+
+    return(
+      <div style={style}>
+        <div><b>{name}</b></div>
+        <div>{phone}</div>
+        <button onClick={this.handleRemove}>삭제</button>
+      </div>
+    );
+  }
+}
+
+export default PhoneInfo;
+```
+
+
+
+## 데이터 업데이트
+
+데이터 업데이트 역시 불변성 유지를 지켜야 합니다. `array.map`을 이용해서 바꾸고자 하는 데이터에 조건을 걸어 새로운 배열을 만듭니다.
+
+```javascript
+const array = [
+    {id: 0, text: 'First', tag: 'a'},
+    {id: 1, text: 'Second', tag: 'b'},
+    {id: 2, text: 'Third', tag: 'c'}
+]
+
+const newArray = array.map(item => item.id === 1 ? ({...item, text: 'new Second'}):item)
+```
+
+이제 업데이트 메서드를 추가하겠습니다.
+
+```javascript
+// App.js
+
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+import PhoneForm from './components/PhoneForm';
+import PhoneInfo from './components/PhoneInfo';
+import PhoneInfoList from './components/PhoneInfoList';
+
+class App extends Component {
+  id = 2
+  state = {
+    information: [
+    {
+      id: 0,
+      name: 'park',
+      phone: '010-1234-5678',
+    },
+    {
+      id: 1,
+      name: 'lee',
+      phone: '010-5459-7895',
+    }
+    ]
+  }
+
+  handleCreate = (data) => {
+    const { information } = this.state;
+    this.setState({
+      information: information.concat({ id: this.id++, ...data })
+    })
+  }
+
+  handleRemove = (id) => {
+    const { information } = this.state;
+    this.setState({
+      information: information.filter(info => info.id !== id)
+    })
+  }
+
+  handleUpdate = (id, data) => {
+    const { information } = this.state;
+    this.setState({
+      information: information.map(info => id === info.id ? {...info, ...data} : info)
+    })
+  }
+  
+  render() {
+    return (
+      <div>
+        <PhoneForm 
+          onCreate={this.handleCreate}
+        />
+        {JSON.stringify(this.state.information)}
+        <PhoneInfoList 
+          data = {this.state.information} 
+          onRemove={this.handleRemove}
+          onUpdate={this.handleUpdate}
+        />
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+`PhoneInfo.js`를 수정하기 전에 `PhoneInfoList.js`를 수정하겠습니다. **list에서 `onUpdate`가 실행되면 props로 전달 받은 메서드가 실행되게 합니다.** `onRemove`와 같이 props를 사용하는 컴포넌트이므로 default값이 필요합니다.
+
+```javascript
+// components/PhoneInfoList.js
+
+import React, { Component } from 'react';
+import PhoneInfo from './PhoneInfo';
+
+class PhoneInfoList extends Component {
+  static defaultProps = {
+    data: [],
+    onRemove: () => console.warn('onRemove not defined'),
+    onUpdate: () => console.warn('onUpdate not defined'),
+  }
+  render(){
+    const { data, onRemove, onUpdate } = this.props;
+    const list = data.map(
+      info => (<PhoneInfo 
+        key={info.id} 
+        info={info} 
+        onRemove={onRemove}
+        onUpdate={onUpdate}
+        />)
+    );
+    return(
+      <div>
+        {list}
+      </div>
+    );
+  }
+}
+
+export default PhoneInfoList;
+```
+
+**이제 리스트 하나하나당 버튼을 만들어서 버튼을 눌렀을 때, Update할 수 있는 새로운 창을 만들고, `수정`을 눌렀을 때 메서드가 실행되도록 하겠습니다.** 새로운 창을 만들기 위해서 수정중임을 알려주는 변수가 필요합니다. 이를 state 안에 editing으로 정하겠습니다.
+
+```javascript
+// components/PhoneInfo.js
+
+import React, { Component } from 'react';
+
+class PhoneInfo extends Component{
+  static defaultProps = {
+    info: {
+      name: '이름',
+      phone: '010-0000-0000',
+      id: 0,
+    },
+  }
+  // 수정 중임을 알려주는 변수들
+  state = {
+    //true면 수정중
+    editing: false,
+    //수정할 때, name창에 들어간 text를 저장할 곳
+    name: '',
+    //수정할 때, phone창에 들어간 text를 저장할 곳
+    phone: '',
+  }
+
+  handleRemove = () => {
+    // 삭제 버튼이 클릭되면 onRemove 에 id 넣어서 실행됨
+    const { info, onRemove } = this.props;
+    onRemove(info.id);
+  }
+
+  //editing을 바꿔주는 함수
+  handleToggleEdit = () => {
+    const { editing } = this.state;
+    this.setState({ editing: !editing});
+  }
+
+  //수정할 text를 받는 함수
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value,
+    })
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // 여기서는, editing 값이 바뀔 때 처리 할 로직이 적혀있습니다.
+    // 수정을 눌렀을땐, 기존의 값이 input에 나타나고,
+    // 수정을 적용할땐, input 의 값들을 부모한테 전달해줍니다.
+
+    const { info, onUpdate } = this.props;
+    if(!prevState.editing && this.state.editing) {
+      // editing 값이 false -> true 로 전환 될 때
+      // info 의 값을 state 에 넣어준다
+      this.setState({
+        name: info.name,
+        phone: info.phone
+      })
+    }
+
+    if (prevState.editing && !this.state.editing) {
+      // editing 값이 true -> false 로 전환 될 때
+      onUpdate(info.id, {
+        name: this.state.name,
+        phone: this.state.phone
+      });
+    }
+  }
+
+  render(){
+    const style = {
+      border: '1px solid black',
+      padding: '8px',
+      margin: '8px',
+    }
+    const { editing } = this.state;
+
+    
+    if (editing) { // 수정모드
+      return (
+        <div style={style}>
+          <div>
+            <input
+              value={this.state.name}
+              name="name"
+              placeholder="이름"
+              onChange={this.handleChange}
+            />
+          </div>
+          <div>
+            <input
+              value={this.state.phone}
+              name="phone"
+              placeholder="전화번호"
+              onChange={this.handleChange}
+            />
+          </div>
+          <button onClick={this.handleToggleEdit}>적용</button>
+          <button onClick={this.handleRemove}>삭제</button>
+        </div>
+      );
+    }
+
+
+    // 일반모드
+    const {
+      name, phone
+    } = this.props.info;
+    
+    return (
+      <div style={style}>
+        <div><b>{name}</b></div>
+        <div>{phone}</div>
+        <button onClick={this.handleToggleEdit}>수정</button>
+        <button onClick={this.handleRemove}>삭제</button>
+      </div>
+    );
+  }
+}
+
+export default PhoneInfo;
+```
+
+
+
+
+
+
+
  
