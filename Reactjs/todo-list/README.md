@@ -34,11 +34,7 @@ const TodoListTemplate = ({form, children}) => {
 export default TodoListTemplate;
 ```
 
-함수형 컴포넌트(클래스X)입니다. props들을 인자로 받습니다. props는 form과 children이 있습니다. **이런식으로 props를 인자로 받으면 JSX를 props로 받을 수 있습니다.** 
-
-
-
-
+함수형 컴포넌트(클래스X)입니다. props들을 인자로 받습니다. props는 form과 children이 있습니다. **이런식으로 props를 인자로 받으면 JSX를 props로 받을 수 있습니다.** props를 인자로 받는 함수이므로 원래는 `(props) => {...}`으로 사용해야 하지만 `({form, children}) => {...}`으로 사용해서 이후에 `props.form`과 `props.children`이 아닌 `form`과 `children`으로 자유롭게 사용할 수 있습니다. 그리고 `from = {<div>안녕하세요</div>}`와 같이 JSX를 props에 편하게 넣을 수 있어 자질구레한 컴포넌트를 따로 만들지 않아도 됩니다.
 
 함수형 컴포넌트(클래스X)입니다. props들을 인자로 받습니다. props는 `form`과 `children`이 있습니다. **이런식으로 props를 인자로 받으면 JSX를 props로 받을 수 있습니다.** 
 
