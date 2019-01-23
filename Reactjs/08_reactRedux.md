@@ -272,7 +272,7 @@ export default connect(
 
 import React, { Component } from 'react';
 import AppTemplate from './AppTemplate';
-import Counter from './Counter';
+//import Counter from './Counter';
 import Todos from './Todos';
 import CounterContainer from 'containers/CounterContainer';
 
