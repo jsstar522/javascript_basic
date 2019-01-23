@@ -296,3 +296,4 @@ export default App;
 
 ## Todo List
 
+이번엔 Todo List 어플리케이션을 리덕스에 적용시켜보겠습니다.
