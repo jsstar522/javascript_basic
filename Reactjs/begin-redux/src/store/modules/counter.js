@@ -20,5 +20,5 @@ export default handleActions({
     return { number: state.number + 1 };
   },
   //비구조화 할당으로 정의하는 방법
-  [DECREMENT]: ({ number }) => ({ number: number - 1});
+  [DECREMENT]: ({ number }) => ({ number: number - 1})
 }, initialState);
