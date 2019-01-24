@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import Counter from 'components/Counter';
 import { connect } from 'react-redux';
-import * as counterActions from 'store/modules/counter';
+import { CounterActions } from 'store/actionCreators';
 
 class CounterContainer extends Component {
   handleIncrement = () => {
-    this.props.increment();
+    CounterActions.increment();
   }
   handleDecrement = () => {
-    this.props.decrement();
+    CounterActions.decrement();
   }
 
   render(){
@@ -29,7 +29,7 @@ class CounterContainer extends Component {
 //   number: state.counter.number
 // });
 
-// // props 값으로 액션 함수 정의
+// // props 값으로 액션 함수 바인딩
 // const mapDispatchToProps = (dispatch) => ({
 //   increment: () => dispatch(counterActions.increment()),
 //   decrement: () => dispatch(counterActions.decrement()),
@@ -43,8 +43,4 @@ export default connect(
   (state) => ({
     number: state.counter.number
   }),
-  (dispatch) => ({
-    increment: () => dispatch(counterActions.increment()),
-    decrement: () => dispatch(counterActions.decrement()),
-  })
 )(CounterContainer)
