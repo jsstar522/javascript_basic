@@ -355,7 +355,7 @@ export default CounterContainer;
 * store에 있는 리듀서를 props로 받아오는 함수를 만듦.
 * **위의 두 함수를 `react-redux` 라이브러리의 connect 함수로 presentational 컴포넌트와 연결.**
 
-이제 Couter 프레젠테이셔널 컴포넌트와 `App.js` 사이에 컨터이너 컴포넌트가 생겼으므로 `App.js`를 다음과 같이 바꿉니다.
+이제 Couter 프레젠테이셔널 컴포넌트와 `App.js` 사이에 컨테이너 컴포넌트가 생겼으므로 `App.js`를 다음과 같이 바꿉니다.
 
 ```javascript
 // components/App.js

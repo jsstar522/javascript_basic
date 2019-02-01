@@ -2,28 +2,29 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './Counter.css';
 
-const Counter = ({ number, color, onIncrement, onDecrement, onSetColor }) => {
+const Counter = ({ number, color, index, onIncrement, onDecrement, onSetColor }) => {
   return (
     <div
       className="Counter"
       // 왼쪽클릭
-      onClick={onIncrement}
+      onClick={() => onIncrement(index)}
       // 오른쪽클릭시 나오는 메뉴
       onContextMenu={
         (e) => { 
           e.preventDefault(); // 그 메뉴를 없애주는 함수
-          onDecrement();
+          onDecrement(index);
       }
       }
-      onDoubleClick={onSetColor}
+      onDoubleClick={() => onSetColor(index)}
       style={{backgroundColor: color}}>
-    {number}
+      {number}
     </div>
   );
 };
 
 // 타입설정
 Counter.propTypes = {
+  index: PropTypes.number,
   number: PropTypes.number,
   color: PropTypes.string,
   onIncrement: PropTypes.func,
@@ -33,6 +34,7 @@ Counter.propTypes = {
 
 // 초기값 설정
 Counter.defaultProps = {
+  index: 0,
   number: 0,
   color: 'red',
   onIncrement: () => console.log('숫자가 올라갑니다.'),
