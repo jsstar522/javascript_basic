@@ -84,8 +84,8 @@ import * as types from '../actions/ActionTypes'
 const initialState = {
   counters: [
     {
-      color: 'black',
-      num: 0
+      color: 'red',
+      number: 0
     }
   ]
 }

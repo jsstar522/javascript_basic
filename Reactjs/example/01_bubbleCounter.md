@@ -198,7 +198,7 @@ import * as types from '../actions/ActionTypes'
 
 const initialState = {
   number: 0,
-  color: 'black',
+  color: 'red',
 }
 
 // 리듀서 함수
