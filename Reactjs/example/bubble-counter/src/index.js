@@ -5,7 +5,7 @@ import App from './components/App';
 
 // 리덕스스토어 연결
 import { createStore } from 'redux';
-import reducers from './reducers'
+import reducers from './modules'
 // 리액트-리덕스 연결
 import { Provider } from 'react-redux';
 

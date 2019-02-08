@@ -3,7 +3,7 @@ import CounterListContainer from '../containers/CounterListContainer';
 import Buttons from '../components/Buttons';
 
 import { connect } from 'react-redux';
-import * as actions from '../actions';
+import * as actions from '../modules';
 
 import { getRandomColor } from '../utils';
 

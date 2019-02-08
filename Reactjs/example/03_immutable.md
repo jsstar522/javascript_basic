@@ -233,7 +233,7 @@ $ yarn add immutable
 // reducer/index.js
 
 import * as types from '../actions/ActionTypes';
-import { Map, List } from Immutable;
+import { Map, List } from 'immutable';
 
 // 초기상태
 // 배열 counters안에 속성들이 객체로 선언되어 있다. List와 Map으로 변경
