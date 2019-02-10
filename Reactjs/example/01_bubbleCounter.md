@@ -157,7 +157,7 @@ export default Counter;
 }
 ```
 
-![bubble counter](bubble_counter.png)
+![bubble counter](img/bubble_counter.png)
 
 이제 프레젠테이셔널 컴포넌트는 모두 완성됐습니다. 
 

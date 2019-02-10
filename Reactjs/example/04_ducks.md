@@ -159,7 +159,7 @@ export default handleActions({
 
 state는 다음과 같이 변경됩니다. `CREATE` 액션함수를 예로 들었습니다.
 
-![ducks](ducks.png)
+![ducks](img/ducks.png)
 
 `counters` 속성만 가져와 배열을 추가하고 배열 안에 있는 값을 바꾸고 있습니다.
 
