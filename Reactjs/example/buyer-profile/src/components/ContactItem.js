@@ -101,50 +101,65 @@ const CircleButton = styled.div`
 
   /* 마우스 커서가 위에 있을 때*/
   &:hover {
-      border: 1px solid ${oc.gray[7]};
-      color: ${oc.gray[9]};
+    border: 1px solid ${oc.gray[7]};
+    color: ${oc.gray[9]};
   }
 
   /* 즐겨찾기 - 노란색 */
   ${ props => props.favorite && css`
-      &:active {
-          border: 1px solid ${oc.yellow[6]};
-          color: ${oc.yellow[6]};
-      `}
+    ${props => props.active && css`
+        border: 1px solid ${oc.yellow[6]};
+        color: ${oc.yellow[6]};
+
+        &:hover {
+            color: ${oc.yellow[5]};
+            border: 1px solid ${oc.yellow[5]};
+        }
+    `}
+    &:active {
+        border: 1px solid ${oc.yellow[6]};
+        color: ${oc.yellow[6]};
+    `}
 `;
 
 class ContactItem extends Component {
-  static propTypes = {
-    contact: PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string,
-      phone: PropTypes.string,
-      color: PropTypes.string,
-      favorite: PropTypes.bool,
-    }),
-    onToggleFavorite: PropTypes.func,
-    onOpenModify: PropTypes.func,
-  }
+    static propTypes = {
+        contact: PropTypes.shape({
+            id: PropTypes.string,
+            name: PropTypes.string,
+            phone: PropTypes.string,
+            color: PropTypes.string,
+            favorite: PropTypes.bool,
+        }),
+        onToggleFavorite: PropTypes.func,
+        onOpenModify: PropTypes.func,
+    }
 
-  render() {
-    const {
-      contact: { name, phone, favorite, id, color },
-      onOpenModify
-    } = this.props;
+    render() {
+        const {
+            contact: { name, phone, favorite, id, color },
+            onOpenModify,
+            onToggleFavorite,
+        } = this.props;
 
-    return (
-      <Wrapper>
-        <Thumbnail color={color} />
-        <Info>
-          <Name>{name}</Name>
-          <Phone>{phone}</Phone>
-        </Info>
-        <div className="actions">
-          <CircleButton favorite><StarIcon/></CircleButton>
-          <CircleButton onClick={() => onOpenModify(id)}><EditIcon/></CircleButton>
-        </div>
-      </Wrapper>
-    );
-  }
+        return (
+            <Wrapper>
+                <Thumbnail color={color} />
+                <Info>
+                    <Name>{name}</Name>
+                    <Phone>{phone}</Phone>
+                </Info>
+                <div className="actions">
+                    <CircleButton 
+                        favorite
+                        active={favorite}
+                        onClick={() => onToggleFavorite(id)}>
+                        <StarIcon />
+                    </CircleButton>
+                    <CircleButton onClick={() => onOpenModify(id)}><EditIcon /></CircleButton>
+                </div>
+            </Wrapper>
+        );
+    }
 }
 export default ContactItem;

@@ -1842,5 +1842,292 @@ RemoveButton.propTypes = {
 
 ### 검색 및 정렬
 
+검색 컴포넌트를 따로 만들 필요없이 `Input` 컴포넌트만 가져오면됩니다. 메인화면에서 Input창이 나올 수 있도록 `App.js`에 Input 컴포넌트를 추가하고 검색 메서드를 만듭니다. 검색 메서드에서 값를 전달하기 위해 state에 search도 추가합니다.  
+
+```javascript
+// App.js
+//...
+import Input from './components/Input';
+//...
+    state = {
+        view: 'list',
+        modal: {
+            visible: false,
+            mode: null  // 생성(create) 혹은 수정(modify) 모드
+        },
+        contacts: [],
+        search: ''
+    }
+//...
+	handleSearchChange = (e) => {
+        this.setState({
+            search: e.target.value
+        });
+    }
+//...
+    render() {
+        const { 
+            handleSelectView, 
+            handleFloatingButtonClick, 
+            modalHandler, 
+            itemHandler, 
+            handleSearchChange,
+        } = this;
+
+        const { view, modal, contacts, search } = this.state
+        //...
+        //컨테이너 컴포넌트 안에 Input 컴포넌트 추가
+        return (
+            <div>
+                <Header />
+                <ViewSelector onSelect={handleSelectView} selected={view} />
+                <Container visible={view === 'favorite'}>첫번째 버튼 클릭시 나타나는 텍스트입니다</Container>
+                <Container visible={view === 'list'}>
+                    <Input
+                        onChange={handleSearchChange}
+                        value={search}
+                        placeholder="검색"
+                    />
+                    <ContactList 
+                        contacts={contacts}
+                        onOpenModify={itemHandler.openModify}
+                        search={search}
+                    />        
+                	//...
+```
+
+이제 검색창이 생기고 검색창에 글을 작성하면 search라는 변수로 값이 전달되는 것을 확인할 수 있습니다. **이 search의 상태는 그대로 `ContactList 컴포넌트`에도 props로 전달 됩니다.** 이제 검색어에 따라서 목록을 새롭게 만들어야 합니다. **`ContactList` 컴포넌트를 search값이 있을 때 다르게 렌더링 되도록 수정합니다.**
+
+```javascript
+// components/ContactList.js
+
+import React, { Component } from 'react';
+import styled from 'styled-components';
+import PropTypes from 'prop-types';
+import ContactItem from './ContactItem';
+
+const Wrapper = styled.div`
+    margin-top: 1rem;
+`;
+
+class ContactList extends Component {
+  static propTypes = {
+    contacts: PropTypes.arrayOf(PropTypes.object),
+    search: PropTypes.string,           // 검색키워드에 사용
+    onToggleFavorite: PropTypes.func,   // 즐겨찾기 버튼
+    onOpenModify: PropTypes.func        // 수정 버튼
+  }
+
+  render() {
+    const { contacts, onOpenModify, search } = this.props;
+    const contactList = contacts
+      .filter(  //검색어로 필터링
+        c => c.name.indexOf(search) !== -1
+      ).sort(   //가나다순 정렬
+        (a, b) => {
+          if (a.name > b.name) return 1;
+          if (a.name < b.name) return -1;
+          return 0;
+        }
+      ).map(
+        contact => (
+          <ContactItem
+            key={contact.id}
+            contact={contact}
+            onOpenModify={onOpenModify}
+          />
+        )
+      );
+    return (
+      <Wrapper>
+        {contactList}
+      </Wrapper>
+    );
+  }
+}
+
+export default ContactList;
+```
+
+이제 가나다순 정렬과 함께 검색도 되는 것을 확인할 수 있습니다. 
+
+
+
+### 즐겨찾기 구현하기
+
+즐겨찾기는 `App.js`에서 Container 컴포넌트 중 하나입니다. 이 컴포넌트를 렌더링 할 때, `favorite`가 **true**일 때만 보여주면 됩니다. 먼저 별표시를 누르면 `favorite`가 **true**로 바꿔서 새로운 배열로 저장하는 메서드를 만듭니다.
+
+```javascript
+// App.js
+//...
+    itemHandler = {
+        toggleFavorite: (id) => {
+            const { contacts } = this.state;
+            const index = contacts.findIndex(contact => contact.id === id);
+            const item = this.state.contacts[index];
+
+            this.setState({
+                contacts: [
+                    ...contacts.slice(0, index),
+                    {
+                        ...item,
+                        favorite: !item.favorite
+                    },
+                    ...contacts.slice(index+1, contacts.length)
+                ]
+            })
+        },
+        //...
+```
+
+이 메서드를 `ContactList` 컴포넌트로 전달하고 `ContactItem`까지 전달되게 합니다.
+
+```javascript
+// App.js
+//...
+					<ContactList 
+                        contacts={contacts}
+                        onOpenModify={itemHandler.openModify}
+                        onToggleFavorite={itemHandler.toggleFavorite}
+                        search={search}
+                    />
+                    //...
+```
+
+`ContactList` 컴포넌트에서 `toggleFavorite`를 받고 `ContactItem`으로 전달합니다.
+
+```javascript
+// components/ContactList.js
+//...
+render() {
+    const { contacts, onOpenModify, onToggleFavorite, search } = this.props;
+    //...
+    ).map(
+        contact => (
+          <ContactItem
+            key={contact.id}
+            contact={contact}
+            onOpenModify={onOpenModify}
+            onToggleFavorite={onToggleFavorite}
+          />
+        )
+      );
+	//...
+```
+
+마지막으로 `ContactItem` 컴포넌트에서 toggleFavorite를 받습니다.
+
+```javascript
+// components/ContactItem.js
+//...
+    render() {
+        const {
+            contact: { name, phone, favorite, id, color },
+            onOpenModify,
+            onToggleFavorite,
+        } = this.props;
+
+        return (
+            <Wrapper>
+                <Thumbnail color={color} />
+                <Info>
+                    <Name>{name}</Name>
+                    <Phone>{phone}</Phone>
+                </Info>
+                <div className="actions">
+                    <CircleButton 
+                        favorite
+                        active={favorite}
+                        onClick={() => onToggleFavorite(id)}>
+                        <StarIcon />
+                    </CircleButton>
+                    <CircleButton onClick={() => onOpenModify(id)}><EditIcon /></CircleButton>
+                </div>
+            </Wrapper>
+        );
+    }
+//...
+```
+
+이제 버튼을 누르면 별표가 노란색으로 변하고 favorite 상태는 **true**가 됩니다. 이제 contacts 배열에서 favorite 상태가 **true**인 것만 렌더링하면 됩니다. 즐겨찾기를 누른 목록만 나오는 컴포넌트를 작성합니다.
+
+```javascript
+// components/FavoriteList.js
+
+import React, { Component } from 'react';
+import styled from 'styled-components';
+import PropTypes from 'prop-types';
+import ContactItem from './ContactItem';
+
+const Wrapper = styled.div`
+    margin-top: 1rem;
+`;
+
+class ContactList extends Component {
+  static propTypes = {
+    contacts: PropTypes.arrayOf(PropTypes.object),
+    favorite: PropTypes.bool,           // 즐겨찾기 값
+    onToggleFavorite: PropTypes.func,   // 즐겨찾기 버튼
+    onOpenModify: PropTypes.func        // 수정 버튼
+  }
+
+  render() {
+    const { contacts, onOpenModify, onToggleFavorite} = this.props;
+    const favoriteList = contacts
+      .filter(  //favorite가 true인것만 필터링
+        contact => contact.favorite
+      ).sort(   //가나다순 정렬
+        (a, b) => {
+          if (a.name > b.name) return 1;
+          if (a.name < b.name) return -1;
+          return 0;
+        }
+      ).map(
+        contact => (
+          <ContactItem
+            key={contact.id}
+            contact={contact}
+            onOpenModify={onOpenModify}
+            onToggleFavorite={onToggleFavorite}
+          />
+        )
+      );
+    return (
+      <Wrapper>
+        {favoriteList}
+      </Wrapper>
+    );
+  }
+}
+
+export default ContactList;
+```
+
+**사용하지 않는 search props만 지우고 favorite를 props로 받아와서 필터링해서 렌더링합니다.** 이제 `App.js`에서 props를 전달합니다.
+
+```javascript
+// App.js
+//...
+import FavoriteList from './components/FavoriteList';
+//...
+        const { view, modal, contacts, search, favorite } = this.state
+        return (
+            <div>
+                <Header />
+                <ViewSelector onSelect={handleSelectView} selected={view} />
+                <Container visible={view === 'favorite'}>
+                    <FavoriteList 
+                        contacts={contacts}
+                        onOpenModify={itemHandler.openModify}
+                        onToggleFavorite={itemHandler.toggleFavorite}
+                        search={search}
+                        favorite={favorite}
+                    />
+                </Container>
+//...
+```
+
+**state는 `App.js`에서 계속 공유되므로 어느쪽에서 내용을 수정하거나 삭제해도 두 창에 모두 반영됩니다.** ![buyerProfile_7](img/buyerProfile_7.gif)
+
 
 

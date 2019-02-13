@@ -7,6 +7,8 @@ import ContactModal from './components/ContactModal';
 import Dimmed from './components/Dimmed';
 import shortid from 'shortid';
 import ContactList from './components/ContactList';
+import Input from './components/Input';
+import FavoriteList from './components/FavoriteList';
 
 import oc from 'open-color';
 // 랜덤색상
@@ -41,7 +43,8 @@ class App extends Component {
             visible: false,
             mode: null  // 생성(create) 혹은 수정(modify) 모드
         },
-        contacts: []
+        contacts: [],
+        search: ''
     }
     // 즐겨찾기/목록 선택시 state 업데이트
     handleSelectView = (view) => this.setState({ view })
@@ -152,7 +155,22 @@ class App extends Component {
     }
 
     itemHandler = {
-        toggleFavorite: null,
+        toggleFavorite: (id) => {
+            const { contacts } = this.state;
+            const index = contacts.findIndex(contact => contact.id === id);
+            const item = this.state.contacts[index];
+
+            this.setState({
+                contacts: [
+                    ...contacts.slice(0, index),
+                    {
+                        ...item,
+                        favorite: !item.favorite
+                    },
+                    ...contacts.slice(index+1, contacts.length)
+                ]
+            })
+        },
         openModify: (id) => {
             const { contacts } = this.state;
             const index = contacts.findIndex(contact => contact.id === id);
@@ -168,19 +186,46 @@ class App extends Component {
         }
     }
 
-    render() {
-        const { handleSelectView, handleFloatingButtonClick, modalHandler, itemHandler } = this;
+    handleSearchChange = (e) => {
+        this.setState({
+            search: e.target.value
+        });
+    }
 
-        const { view, modal, contacts } = this.state
+    render() {
+        const { 
+            handleSelectView, 
+            handleFloatingButtonClick, 
+            modalHandler, 
+            itemHandler, 
+            handleSearchChange,
+        } = this;
+
+        const { view, modal, contacts, search, favorite } = this.state
         return (
             <div>
                 <Header />
                 <ViewSelector onSelect={handleSelectView} selected={view} />
-                <Container visible={view === 'favorite'}>첫번째 버튼 클릭시 나타나는 텍스트입니다</Container>
+                <Container visible={view === 'favorite'}>
+                    <FavoriteList 
+                        contacts={contacts}
+                        onOpenModify={itemHandler.openModify}
+                        onToggleFavorite={itemHandler.toggleFavorite}
+                        search={search}
+                        favorite={favorite}
+                    />
+                </Container>
                 <Container visible={view === 'list'}>
+                    <Input
+                        onChange={handleSearchChange}
+                        value={search}
+                        placeholder="검색"
+                    />
                     <ContactList 
                         contacts={contacts}
                         onOpenModify={itemHandler.openModify}
+                        onToggleFavorite={itemHandler.toggleFavorite}
+                        search={search}
                     />
                 </Container>
                 <Dimmed visible={modal.visible} />
