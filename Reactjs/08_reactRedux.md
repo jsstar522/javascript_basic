@@ -87,10 +87,11 @@ export default function reducer(state = initialState, action){
 
 `액션타입을 정의`하고, `액션객체를 생성`했으며, `액션객체에 따른 동작을 정의하는 리듀서`까지 module에 만들었습니다. 이렇게 **module하나에 이 모든 것을 한번에 정리하는 것을 `Ducks 구조`라고 합니다.** 액션 하나가 추가되면 여러파일을 수정할 필요가 없이 하나의 파일에서 정리할 수 있습니다. 액션타입을 참조할 때는 도메인 형식으로 export하므로 다른 모듈에서도 같은 액션타입을 사용할 수 있습니다. 
 
-조금더 편하게 액션객체 생성함수를 작성하기 위해 `createAction` 함수와 `handleAction` 함수를 사용해보겠습니다.
+조금더 편하게 액션객체 생성함수를 작성하기 위해 `createAction` 함수와 `handleActions` 함수를 사용해보겠습니다.
 
 ```javascript
 // store/modules/counter.js
+// (Ducks 구조)
 
 // 액션생성 함수 정의
 import { createAction, handleActions } from 'redux-actions';
@@ -118,18 +119,42 @@ export default handleActions({
 }, initialState);
 ```
 
-**`createAction`을 사용하면 전달하고자 하는 값(`diff`)을 payload 형태로 여러개 받을 수 있습니다.** 예를 들어보겠습니다.
+### (참고) redux-actions 라이브러리 사용
 
-```javascript
-const ANYVALUE = 'ANYVALUE'
+`redux-actions`는 액션 생성자를 생성하고 각 액션객체를 받았을 때 실행되는 함수를 정의할 때 편하게 사용할 수 있습니다.
 
-export const anyValue = createAction(ANYVALUE);
+* `createAction` : 액션 생성자를 항상 다음과 같이 만들었죠.
 
-anyValue({ first: 'apple', second: 'banana'});
-//{ type: 'ANYVALUE', payload: { first: 'apple', second: 'banana' } }
-```
+* ```javascript
+  export const increment = () => ({ type: INCREMENT });
+  
+  // index가 필요한 경우(몇번째 객체에 해당하는지 알 필요가 있을 때)에는 다음과 같이 만들었다.
+  export const increment = (index) => ({ 
+      type: DECREMENT, 
+      index
+  });
+  ```
 
-`createAction` 함수는 총 3개의 인자를 받습니다. 첫번째는 `액션명`, 두번째는 `payload`, 세번째는 `meta` 입니다. 세번째 인자를 적지 않는다면 생략합니다.
+  이는 액션객체를 만들 때마다 복잡하고 속성종류가 많아질 때마다 더 번거로워지죠. 그래서 `createAction`을 사용합니다.
+
+  ```javascript
+  export const increment = createAction(INCREMENT);
+  ```
+
+  **`createAction`을 사용하면 전달하고자 하는 값(`diff`)을 payload 형태로 여러개 받을 수 있습니다.** 예를 들어보겠습니다.
+
+  ```javascript
+  const ANYVALUE = 'ANYVALUE'
+  
+  export const anyValue = createAction(ANYVALUE);
+  
+  anyValue({ first: 'apple', second: 'banana'});
+  //{ type: 'ANYVALUE', payload: { first: 'apple', second: 'banana' } }
+  ```
+
+  `createAction` 함수는 총 3개의 인자를 받습니다. 첫번째는 `액션명`, 두번째는 `payload`, 세번째는 `meta` 입니다. 세번째 인자를 적지 않는다면 생략합니다.
+
+* `handleActions` : 액션객체에 따라 실행할 함수를 정의할 때 `switch~case`문을 사용했습니다. **이 경우 `case`안에서  `const`와 `let`으로 변수를 선언해 사용할 경우 `scope(탐색범위)`가 리듀서이므로 변수가 중복되면 에러가 발생합니다.** `handleActions`은 이 문제를 해결해줍니다.
 
 ### Reducer combine (index.js)
 
@@ -224,6 +249,8 @@ export default Root;
 `Provider`는 리액트에 리덕스를 적용시키는 역할을 합니다.
 
 ### Container Component(CounterContainer.js)
+
+**컨테이너 컴포넌트는 리덕스와 리액트를 연결하는 창구입니다.** 그래서 컨테이너 컴포넌트에서 **`connect-dispatch`를 통해 리듀서를 가져오고** 그 **리듀서를 메서드로 정의**한 뒤, **프레젠테이셔널 컴포넌트에서 사용**합니다. `App.js`에서는 이 컨테이너 컴포넌트만 렌더링하면 되는 것입니다.
 
 **이제 리덕스 스토어에 있는 리듀서를 props로 받아와서 `dispatch`로 presentational 컴포넌트와 연결하겠습니다(바인딩).**
 
