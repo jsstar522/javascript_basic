@@ -285,5 +285,543 @@ import ViewSelectorContainer from './containers/ViewSelectorContainer';
 
 ```
 
+### InputContainer
 
+검색하는 Input 창을 컨테이너 컴포넌트로 만들겠습니다.
+
+```javascript
+// containers/InputContainer.js
+
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as baseActions from '../modules/base';
+import Input from '../components/Input';
+
+class InputContainer extends Component {
+  handleChange = (e) => {
+    const { BaseActions } = this.props;
+    BaseActions.changeSearch(e.target.value);
+  }
+
+  render() {
+    const { keyword } = this.props;
+    const { handleChange } = this;
+    
+    return (
+      <Input onChange={handleChange} value={keyword} placeholder="검색" />
+
+    );
+  }
+}
+
+export default connect(
+  (state) => ({
+    keyword: state.base.get('keyword')
+  }),
+  (dispatch) => ({
+    BaseActions: bindActionCreators(baseActions, dispatch)
+  })
+)(InputContainer);
+```
+
+### FloatingButtonContainer
+
+랜덤으로 색상을 정해주는 함수를 이 컴포넌트에 넣어주고, 클릭 이벤트에 모달 show 액션을 연결합니다.
+
+```javascript
+import React, { Component } from 'react';
+import FloatingButton from '../components/FloatingButton';
+import { connect } from 'react-redux';
+import * as modalActions from '../modules/modal';
+import * as baseActions from '../modules/base';
+import { bindActionCreators } from 'redux';
+import oc from 'open-color';
+
+function generateRandomColor() {
+  const colors = [
+    'gray',
+    'red',
+    'pink',
+    'grape',
+    'violet',
+    'indigo',
+    'blue',
+    'cyan',
+    'teal',
+    'green',
+    'lime',
+    'yellow',
+    'orange'
+  ];
+  const random = Math.floor(Math.random() * 13);
+  return oc[colors[random]][4];
+}
+
+class FloatingButtonContainer extends Component {
+  handleClick = () => {
+    const { ModalActions, BaseActions } = this.props;
+    BaseActions.setView('list');
+    // show 액션
+    ModalActions.show({
+      mode: 'create',
+      contact: {
+        name: '',
+        phone: '',
+        color: generateRandomColor()
+      }
+    });
+  }
+  render() {
+    const { handleClick } = this;
+    return (
+      <FloatingButton onClick={handleClick}/>
+    )
+  }
+}
+
+export default connect(
+  null,
+  (dispatch) => ({
+    ModalActions: bindActionCreators(modalActions, dispatch),
+    BaseActions: bindActionCreators(baseActions, dispatch)
+  })
+)(FloatingButtonContainer);
+```
+
+
+
+이제 메인화면에 기본적으로 뜨는 컴포넌트는 모두 완성됐습니다. `App.js`에서 컴포넌트를 렌더링 해보겠습니다.
+
+```javascript
+// App.js
+// ...
+import ViewSelectorContainer from './containers/ViewSelectorContainer';
+import InputContainer from './containers/InputContainer';
+//...
+class App extends Component {
+  render() {
+    const { view } = this.props;
+    return(
+      <div>
+        <Header/>
+        <ViewSelectorContainer/>
+        <Container visible={view==='favorite'}>
+        /* FavoriteListContainer 가 들어갈 자리 */
+        </Container>
+        <Container visible={view==='list'}>
+          <InputContainer/>
+        /* ContactListContainer 가 들어갈 자리 */
+        </Container>
+        /* ContactModalContainer 가 들어갈 자리 */
+        <FloatingButtonContainer/>
+      </div>
+//...
+```
+
+### ContactModalContainer
+
+이제 모달화면 컨테이너 컴포넌트를 만들겠습니다. 모달 안에는 **다섯가지 기능**이 들어가고 각각 다음과 같은 액션과 대입됩니다.
+
+* 값 변화감지(전달) => `modal/CHANGE`
+* 모달화면 숨기기 => `modal/HIDE`
+* 목록 생성 => `contact/CREATE`
+* 목록 수정 => `contact/MODIFY`
+* 목록 삭제 => `contact/REMOVE`
+
+이 액션들을 가져와서 컨테이너에 넣어줍니다.
+
+```javascript
+// containers/ContactModalContainer.js
+
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import ContactModal from '../components/ContactModal';
+//모달이 켜지면 주변이 어둡게 변함
+import Dimmed from '../components/Dimmed';
+
+import * as modalActions from '../modules/modal';
+import * as contactsActions from '../modules/contacts';
+
+import shortid from 'shortid';
+
+class ContactModalContainer extends Component {
+  
+  // modal 값 변화 감지
+  handleChange = ({name, value}) => {
+    const { ModalActions } = this.props;
+    ModalActions.change({
+      name,
+      value
+    });
+  }
+  
+  // modal 창 숨기기
+  handleHide = () => {
+    const { ModalActions } = this.props;
+    ModalActions.hide();
+  }
+
+  // 해당목록 삭제
+  handleRemove = () => {
+    const { ContactActions, modal } = this.props;
+    const id = modal.getIn(['contact', 'id']);
+
+    ContactActions.remove(id);
+    this.handleHide();
+  }
+
+  // 해당목록 생성, 수정
+  // handleAction 객체에 두 함수를 넣음.
+  handleAction = {
+    create: () => {
+      const { ContactActions, modal } = this.props;
+      // immutable로 받아오기 때문에 toJS() 실행
+      const { name, phone, color } = modal.get('contact').toJS();
+      const id = shortid.generate();
+
+      ContactActions.create({
+        id,
+        name,
+        phone,
+        color,
+      });
+
+      this.handleHide();
+    },
+
+    modify: () => {
+      const { ContactActions, modal } = this.props;
+      const { id, name, phone } = modal.get('contact').toJS();
+
+      ContactActions.modify({
+        id,
+        contact: {
+          name,
+          phone
+        }
+      });
+      this.handleHide();
+    }
+  }
+
+  render(){
+    const { modal } = this.props;
+    const { visible, mode, contact } = modal.toJS();
+
+    const {
+      handleHide,
+      handleAction,
+      handleChange,
+      handleRemove
+    } = this;
+
+    return (
+      <div>
+        <ContactModal
+          visible={visible}
+          mode={mode}
+          name={contact.name}
+          phone={contact.phone}
+          color={contact.color}
+          onHide={handleHide}
+          onAction={handleAction[mode]}
+          onRemove={handleRemove}
+          onChange={handleChange}
+        />
+        /* 이 아래 컴포넌트 어둡게 변함 */
+        <Dimmed visible={visible}/>
+      </div>
+    );
+  }
+}
+
+export default connect(
+  (state) => ({
+    modal: state.modal
+  }),
+  (dispatch) => ({
+    ContactActions: bindActionCreators(contactsActions, dispatch),
+    ModalActions: bindActionCreators(modalActions, dispatch),
+  })
+)(ContactModalContainer);
+```
+
+여기까지 만들면 모든 기능이 구현됩니다. 목록이 렌더링되지는 않지만 목록 생성, 수정 등 모든 기능이 구현됐습니다.
+
+![buyerProfileRedux](img/buyerProfileRedux_2.png)
+
+이제 본격적으로 목록이 렌더링되는 FavoriteListContainer와 ContactListContainer를 만들어보겠습니다.
+
+### ContactListContainer
+
+목록을 렌더링하는 `ContactListContainer` 컴포넌트를 만들기 전에 프레젠테이셔널 컴포넌트(compoenents/ContactList.js)에서 `immutable`의 `Map`, `List`를 사용할 수 있도록 수정해야합니다. `immutable`이 props로 전달될 때는 `react-immutable-proptypes` 라이브러리를 사용합니다.
+
+* Map : `ImmutablePropTypes.mapContains()`
+* List : `ImmutablePropTypes.listOf()`
+
+```javascript
+// components/ContactItem.js
+//...
+import ImmutablePropTypes from 'react-immutable-proptypes';
+//...
+class ContactItem extends Component {
+    static propTypes = {
+        contact: ImmutablePropTypes.mapContains({
+            id: PropTypes.string,
+            name: PropTypes.string,
+            phone: PropTypes.string,
+            color: PropTypes.string,
+            favorite: PropTypes.bool,
+        }),
+        onToggleFavorite: PropTypes.func,
+        onOpenModify: PropTypes.func,
+    }
+//...
+	render() {
+        const {
+            contact,
+            onOpenModify,
+            onToggleFavorite,
+        } = this.props;
+
+        const { name, phone, favorite, id, color } = contact.toJS();
+```
+
+```javascript
+// components/ContactList.js
+//...
+import ImmutablePropTypes from 'react-immutable-proptypes';
+//...
+class ContactList extends Component {
+  static propTypes = {
+    contacts: ImmutablePropTypes.listOf(
+      ImmutablePropTypes.mapContains({
+        id: PropTypes.string,
+        name: PropTypes.string,
+        phone: PropTypes.string,
+        color: PropTypes.string,
+        favorite: PropTypes.bool
+      })
+    ),
+    search: PropTypes.string,           // 검색키워드에 사용
+    onToggleFavorite: PropTypes.func,   // 즐겨찾기 버튼
+    onOpenModify: PropTypes.func        // 수정 버튼
+//...
+//그냥 name이 아닌 get('name')으로 가져와야 한다. (immutalbe)
+    const contactList = contacts
+      .filter(  //검색어로 필터링
+        c => c.get('name').indexOf(search) !== -1
+      ).sort(   //가나다순 정렬
+        (a, b) => {
+          if (a.get('name') > b.get('name')) return 1;
+          if (a.get('name') < b.get('name')) return -1;
+          return 0;
+        }
+      ).map(
+        contact => (
+          <ContactItem
+            key={contact.get('id')}
+            contact={contact}
+            onOpenModify={onOpenModify}
+            onToggleFavorite={onToggleFavorite}
+          />
+        )
+      );
+```
+
+이제 `ContactListContainer`를 작성합니다.
+
+```javascript
+// containers/ContactListContainer.js
+
+import React, { Component } from 'react';
+import ContactList from '../components/ContactList';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import * as modalActions from '../modules/modal';
+import * as contactsActions from '../modules/contacts';
+
+class ContactListContainer extends Component {
+  // 수정버튼 활성화
+  handleOpenModify = (id) => {
+    const { contacts, ModalActions } = this.props;
+    const contact = contacts.find(contact => contact.get('id') === id);
+
+    ModalActions.show({
+      mode: 'modify',
+      contact: contact.toJS()
+    });
+  }
+
+  // 즐겨찾기버튼 활성화
+  handleToggleFavorite = (id) => {
+    const { ContactsActions } = this.props;
+    ContactsActions.toggleFavorite(id);
+  }
+
+  render() {
+    const { contacts, keyword } = this.props;
+    const {
+      handleOpenModify,
+      handleToggleFavorite
+    } = this;
+
+    return (
+      <ContactList
+        contacts={contacts}
+        onOpenModify={handleOpenModify}
+        onToggleFavorite={handleToggleFavorite}
+        search={keyword}
+      />
+    );
+  }
+}
+
+export default connect(
+  (state) => ({
+    keyword: state.base.get('keyword'),
+    contacts: state.contacts
+  }),
+  (dispatch) => ({
+    ModalActions: bindActionCreators(modalActions, dispatch),
+    ContactsActions: bindActionCreators(contactsActions, dispatch)
+  })
+)(ContactListContainer);
+```
+
+이제 ContactList 컴포넌트까지 `App.js`에서 추가해 띄워보겠습니다. 
+
+```javascript
+// App.js
+//...
+        <Header/>
+        <ViewSelectorContainer/>
+        <Container visible={view==='favorite'}>
+        /* FavoriteListContainer 가 들어갈 자리 */
+        </Container>
+        <Container visible={view==='list'}>
+          <InputContainer/>
+          <ContactListContainer/>
+        </Container>
+        <ContactModalContainer/>
+        <FloatingButtonContainer/>
+//...
+```
+
+### FavoriteListContainer
+
+마지막으로 즐겨찾기 목록을 렌더링하겠습니다. 위의 `ContactListContainer`와 마찬가지로 immutable로 배열과 객체가 생성되므로 먼저 프레젠티이셔널 컴포넌트를 바꿔야 합니다.
+
+```javascript
+// components/FavoriteList.js
+//...
+import ImmutablePropTypes from 'react-immutable-proptypes';
+//...
+class ContactList extends Component {
+  static propTypes = {
+    contacts: ImmutablePropTypes.listOf(
+      ImmutablePropTypes.mapContains({
+        id: PropTypes.string,
+        name: PropTypes.string,
+        phone: PropTypes.string,
+        color: PropTypes.string,
+        favorite: PropTypes.bool
+      })
+    ),
+    onToggleFavorite: PropTypes.func,   // 즐겨찾기 버튼
+    onOpenModify: PropTypes.func        // 수정 버튼
+  }
+//...
+    const favoriteList = contacts
+      .filter(  //favorite가 true인것만 필터링
+        contact => contact.favorite
+      ).sort(   //가나다순 정렬
+        (a, b) => {
+          if (a.get("name") > b.get("name")) return 1;
+          if (a.get("name") < b.get("name")) return -1;
+          return 0;
+        }
+      ).map(
+        contact => (
+          <ContactItem
+            key={contact.get("id")}
+            contact={contact}
+            onOpenModify={onOpenModify}
+            onToggleFavorite={onToggleFavorite}
+          />
+        )
+      );
+//...
+```
+
+이제 컨테이너를 만들어줍니다. `ContactListContainer`와 거의 비슷합니다. `FavoriteList` 프레젠테이셔널 컴포넌트와 액션함수를 모두 연결해줍니다.
+
+```javascript
+// containers/FavoriteListContainer.js
+
+import React, { Component } from 'react';
+import FavoriteList from '../components/FavoriteList';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import * as modalActions from '../modules/modal';
+import * as contactsActions from '../modules/contacts';
+
+class FavoriteListContainer extends Component {
+  // 수정버튼 활성화
+  handleOpenModify = (id) => {
+    const { contacts, ModalActions } = this.props;
+    const contact = contacts.find(contact => contact.get('id') === id);
+
+    ModalActions.show({
+      mode: 'modify',
+      contact: contact.toJS()
+    });
+  }
+
+  // 즐겨찾기버튼 활성화
+  handleToggleFavorite = (id) => {
+    const { ContactsActions } = this.props;
+    ContactsActions.toggleFavorite(id);
+  }
+
+  render() {
+    const { contacts, keyword } = this.props;
+    const {
+      handleOpenModify,
+      handleToggleFavorite
+    } = this;
+
+    return (
+      <FavoriteList
+        contacts={contacts}
+        onOpenModify={handleOpenModify}
+        onToggleFavorite={handleToggleFavorite}
+        search={keyword}
+      />
+    );
+  }
+}
+
+export default connect(
+  (state) => ({
+    keyword: state.base.get('keyword'),
+    contacts: state.contacts
+  }),
+  (dispatch) => ({
+    ModalActions: bindActionCreators(modalActions, dispatch),
+    ContactsActions: bindActionCreators(contactsActions, dispatch)
+  })
+)(FavoriteListContainer);
+```
+
+이제 마지막으로 `App.js`에서 모든 컴포넌트를 띄우면 완성입니다.
+
+
+
+리덕스를 사용하면 더 많은 컴포넌트가 생성되지만 중간지점(`리덕스 스토어`)에 있는 컨테이너 컴포넌트에서 **액션과 프레젠테이셔널 컴포넌트를 연결하고 있기 때문에 관리가 편해집니다.**
 

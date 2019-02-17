@@ -4,24 +4,28 @@ import Container from './components/Container';
 import { connect } from 'react-redux';
 
 import ViewSelectorContainer from './containers/ViewSelectorContainer';
-
+import InputContainer from './containers/InputContainer';
+import ContactModalContainer from './containers/ContactModalContainer';
+import FloatingButtonContainer from './containers/FloatingButtonContainer';
+import ContactListContainer from './containers/ContactListContainer';
+import FavoriteListContainer from './containers/FavoriteListContainer';
 
 class App extends Component {
   render() {
     const { view } = this.props;
     return(
       <div>
-        <Header />
+        <Header/>
         <ViewSelectorContainer/>
         <Container visible={view==='favorite'}>
-        /* FavoriteListContainer 가 들어갈 자리 */
+          <FavoriteListContainer/>
         </Container>
         <Container visible={view==='list'}>
-        /* InputContainer(검색) 가 들어갈 자리 */
-        /* ContactListContainer 가 들어갈 자리 */
+          <InputContainer/>
+          <ContactListContainer/>
         </Container>
-        /* ContactModalContainer 가 들어갈 자리 */
-        /* FloatingButtonContainer 가 들어갈 자리 */
+        <ContactModalContainer/>
+        <FloatingButtonContainer/>
       </div>
     );
   }

@@ -33,5 +33,5 @@ export default handleActions({
   [TOGGLE_FAVORITE]: (state, action) => {
     const index = state.findIndex(contact => contact.get('id') === action.payload);
     return state.update(index, contact => contact.set('favorite', !contact.get('favorite')));
-  },
+  }
 }, initialState)
