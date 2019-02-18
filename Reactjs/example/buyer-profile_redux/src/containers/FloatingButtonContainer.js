@@ -30,15 +30,8 @@ class FloatingButtonContainer extends Component {
   handleClick = () => {
     const { ModalActions, BaseActions } = this.props;
     BaseActions.setView('list');
-    // show 액션
-    ModalActions.show({
-      mode: 'create',
-      contact: {
-        name: '',
-        phone: '',
-        color: generateRandomColor()
-      }
-    });
+    // showAsync 액션
+    ModalActions.showAsync();
   }
   render() {
     const { handleClick } = this;

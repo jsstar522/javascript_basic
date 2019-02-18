@@ -122,4 +122,125 @@ logger를 사용하는 것은 중요하지만 사실 위 코드에서 주석처�
 
 ## 비동기 작업 처리
 
-미들웨어를 사용하는 또 다른 큰 이유는 비동기 작업을 처리하기 위해서입니다. 
+미들웨어를 사용하는 또 다른 큰 이유는 비동기 작업을 처리하기 위해서입니다. 비동기 액션을 처리하기 위해서 미들웨어 라이브러리를 사용합니다.
+
+### redux-thunk
+
+이 미들웨어는 액션객체를 생성하지 않고 액션함수를 생성하도록 해줍니다. 액션함수를 생성하면 비동기 처리가 가능합니다. 예를들어 thunk 변수를 선언한다고 가정합시다.
+
+```javascript
+const thunk = 1 + 2;
+```
+
+이 변수는 선언과 동시에 값이 계산됩니다. 하지만 함수로 만들면 함수를 호출할 때 계산됩니다.
+
+```javascript
+const thunk = () => 1 + 2;
+```
+
+이렇게 계산을 미루기 위해 함수로 만드는 것을 `thunk`라고 합니다. 먼저 redux-thunk를 설치합니다.
+
+```bash
+$ yarn add redux-thunk
+```
+
+이제 액션 생성자 함수를 함수자체로 선언해보겠습니다.
+
+```javascript
+// modules/modal.js
+
+import { createAction, handleActions } from 'redux-actions';
+import { Map } from 'immutable';
+
+// 액션정의
+const SHOW = 'modal/SHOW';
+const HIDE = 'modal/HIDE';
+const CHANGE = 'modal/CHANGE';
+
+// 액션 생성자 함수
+export const show = createAction(SHOW);
+export const hide = createAction(HIDE);
+export const change = createAction(CHANGE);
+
+export const showAsync = () => dispatch => {
+  setTimeout(
+    () => {dispatch(show(/** 나중에 mode와 contact 속성을 넣어줄 자리 **/))},
+    5000
+  );
+}
+//...
+```
+
+`showAsync`를 store에 먼저 디스패치(`store.dispatch(showAsync)`)한다면 **1초 뒤에 `show()`를 디스패치하는 비동기 방식입니다.** show 액션은 mode와 contact 속성을 가진 객체를 필요로 하므로 나중에 넣어줘야 합니다.
+
+```javascript
+// index.js
+//...
+import ReduxThunk from 'redux-thunk';
+//...
+const store = createStore(reducers, applyMiddleware(loggerMiddleware, ReduxThunk));
+//...
+```
+
+미들웨어를 장착했습니다. 이어서 목록추가버튼을 누르면 5초 뒤에 모달이 보여지도록(`modal/SHOW`) `FloatingButtonContainer.js`에서 액션을 수정합니다.
+
+```javascript
+// containers/FloatingButtonContainer.js
+//...
+class FloatingButtonContainer extends Component {
+  handleClick = () => {
+    const { ModalActions, BaseActions } = this.props;
+    BaseActions.setView('list');
+    // showAsync 액션
+    ModalActions.showAsync();
+  }
+//...
+```
+
+`show`대신 `showAsync`를 dispatch 했습니다. 이후 show는 속성들과 함께 액션이 전달되므로 `modal.js`에서 show 부분을 다시 바꿔줍니다. 
+
+```javascript
+// modules/modal.js
+
+import { createAction, handleActions } from 'redux-actions';
+import { Map } from 'immutable';
+
+// 액션정의
+const SHOW = 'modal/SHOW';
+const HIDE = 'modal/HIDE';
+const CHANGE = 'modal/CHANGE';
+
+// 액션 생성자 함수
+export const show = createAction(SHOW);
+export const hide = createAction(HIDE);
+export const change = createAction(CHANGE);
+
+export const showAsync = () => dispatch => {
+  setTimeout(
+    () => { dispatch(show({
+      mode: 'create',
+      contact: {
+        name: '',
+        phone: '',
+        // color: generateRandomColor()
+      }
+    }
+    )) },
+    5000
+  );
+}
+//...
+```
+
+이렇게 하면 먼저 `showAsync가 dispatch`되고, 5초가 지난 뒤 `show가 mode와 contact 속성을 가지고 dispatch` 됩니다. **`추가버튼`을 누르고 다른 작업을 해도 잘 작동하고 5초가 지나면 모달이 뜹니다.**
+
+### 웹요청 처리 
+
+리덕스-리액트 앱에서 HTTP 요청을 할 수 있습니다. https://jsonplaceholder.typicode.com/posts/에 있는 문서의 내용을 리액트 앱에서 숫자를 띄워 해당 postId의 내용을 불러오겠습니다. 숫자를 띄우는 앱, Counter를 불러옵니다(https://github.com/jsstar522/javascript_basic/tree/master/Reactjs/begin-redux).
+
+웹요청을 처리하기 위해서 axios 라이브러리를 사용하겠습니다. axios는 HTTP 클라이언트입니다(프로미스 기반).
+
+```bash
+$ yarn add axios
+```
+

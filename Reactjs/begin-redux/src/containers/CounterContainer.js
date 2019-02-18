@@ -11,14 +11,18 @@ class CounterContainer extends Component {
     CounterActions.decrement();
   }
 
-  render(){
+  render() {
     const { handleIncrement, handleDecrement } = this;
-    const { number } = this.props;
-    return(
-      <Counter 
+    const { number, post, error, loading } = this.props;
+
+    return (
+      <Counter
         onIncrement={handleIncrement}
         onDecrement={handleDecrement}
         number={number}
+        post={post}
+        error={error}
+        loading={loading}
       />
     );
   }
@@ -41,6 +45,9 @@ class CounterContainer extends Component {
 // 위의 세단계는 다음과 같이 깔끔하게 정리 가능
 export default connect(
   (state) => ({
-    number: state.counter.number
-  }),
+    number: state.counter.number,
+    post: state.post.data,
+    loading: state.post.pending,
+    error: state.post.error
+  })
 )(CounterContainer)

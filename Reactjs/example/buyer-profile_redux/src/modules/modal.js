@@ -11,6 +11,21 @@ export const show = createAction(SHOW);
 export const hide = createAction(HIDE);
 export const change = createAction(CHANGE);
 
+export const showAsync = () => dispatch => {
+  setTimeout(
+    () => { dispatch(show({
+      mode: 'create',
+      contact: {
+        name: '',
+        phone: '',
+        // color: generateRandomColor()
+      }
+    }
+    )) },
+    5000
+  );
+}
+
 // immutable Map = 객체생성
 const initialState = Map({
   visible: false,
