@@ -5032,6 +5032,11 @@ proxy-addr@~2.0.2:
     forwarded "~0.1.2"
     ipaddr.js "1.5.2"
 
+proxy-polyfill@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/proxy-polyfill/-/proxy-polyfill-0.3.0.tgz#385c13d1402d4ae1357b6e44652d9b8d6289b0ef"
+  integrity sha512-0HN+SoV3qKJ1EIIOsEybYgyTTnR26PJ0af/shBqaXLUMIg7/8PHEyQ28QfaDFwmvH77yRuLtclnERgrCq4v+xg==
+
 prr@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz#d3fc114ba06995a45ec6893f484ceb1d78f5f476"
@@ -5346,6 +5351,23 @@ redux-actions@^2.2.1:
     lodash "^4.13.1"
     lodash-es "^4.17.4"
     reduce-reducers "^0.1.0"
+
+redux-pender@^2.0.12:
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/redux-pender/-/redux-pender-2.0.12.tgz#7738a9dae0de14688acfad325a3bbd8774f960cc"
+  integrity sha512-NeZOUaq1v1zpD8Ho5L9179WKWPyGayPEjUPlTYIfLaDKd1l0qZEu06VYtSGeULrzcZIKy8/LDwj70sVvcjOGEw==
+  dependencies:
+    proxy-polyfill "^0.3.0"
+
+redux-promise-middleware@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/redux-promise-middleware/-/redux-promise-middleware-6.1.0.tgz#ecdb22488cdd673c1a3f0d278d82b48d92ca5d06"
+  integrity sha512-C62Ku3TgMwxFh5r3h1/iD+XPdsoizyHLT74dTkqhJ8c0LCbEVl1z9fm8zKitAjI16e6w6+h3mxf6wHdonaYXfQ==
+
+redux-thunk@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.3.0.tgz#51c2c19a185ed5187aaa9a2d08b666d0d6467622"
+  integrity sha512-km6dclyFnmcvxhAcrQV2AkZmPQjzPDjgVlQtR0EQjxZPyJ0BnMf3in1ryuR8A2qU0HldVRfxYXbFSKlI3N7Slw==
 
 redux@^3.7.2:
   version "3.7.2"
