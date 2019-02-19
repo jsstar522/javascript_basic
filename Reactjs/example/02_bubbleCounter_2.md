@@ -21,7 +21,7 @@ ReactDOM.render(
 // ...
 ```
 
-![redux devtool](reduxDevtool.png)
+![redux devtool](img/reduxDevtool.png)
 
 이제 **`추가`와 `제거`버튼을 만들어 액션객체로 전달하기 위해서 액션객체를 새롭게 정의해야합니다.** `actions/ActionTypes.js`에서 액션타입을 추가합니다.
 
